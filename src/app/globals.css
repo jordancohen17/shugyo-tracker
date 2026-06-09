@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-washi: #faf8f5;
+  --color-tatami: #f2efeb;
+  --color-sumi: #1a1a1a;
+  --color-stone: #8c8a85;
+  --color-shibu: #e3e1db;
+  --color-aizome: #3b4e68;
+  --color-aizome-light: #e5e8ec;
+
+  --font-serif: "Playfair Display", "Georgia", serif;
+  --font-sans: "Outfit", "Inter", -apple-system, sans-serif;
+  --font-mono: "Geist Mono", monospace;
+}
+
+:root {
+  --background: var(--color-washi);
+  --foreground: var(--color-sumi);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shoji-border {
+  border: 1px solid var(--color-shibu);
+}
+
+.shoji-border-thin {
+  border: 0.5px solid var(--color-shibu);
+}
