@@ -31,9 +31,18 @@ export async function fetchOuraMetrics(dateStr: string, accessToken: string): Pr
       next: { revalidate: 3600 },
     });
 
-    if (!readinessRes.ok || !sleepRes.ok) {
+    // Fetch detailed sleep to retrieve average HRV and lowest heart rate
+    const detailedSleepUrl = `https://api.ouraring.com/v2/usercollection/sleep?start_date=${dateStr}&end_date=${dateStr}`;
+    const detailedSleepRes = await fetch(detailedSleepUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      next: { revalidate: 3600 },
+    });
+
+    if (!readinessRes.ok || !sleepRes.ok || !detailedSleepRes.ok) {
       console.error(
-        `Oura API returned error: Readiness: ${readinessRes.status} (${readinessRes.statusText}), Sleep: ${sleepRes.status} (${sleepRes.statusText})`
+        `Oura API returned error: Readiness: ${readinessRes.status} (${readinessRes.statusText}), Sleep: ${sleepRes.status} (${sleepRes.statusText}), Detailed Sleep: ${detailedSleepRes.status} (${detailedSleepRes.statusText})`
       );
       console.warn('Falling back to mock Oura metrics for verification.');
       return {
@@ -46,16 +55,18 @@ export async function fetchOuraMetrics(dateStr: string, accessToken: string): Pr
 
     const readinessJson = await readinessRes.json();
     const sleepJson = await sleepRes.json();
+    const detailedSleepJson = await detailedSleepRes.json();
 
     const readinessDoc = readinessJson.data?.[0];
     const sleepDoc = sleepJson.data?.[0];
+    const detailedSleepDoc = detailedSleepJson.data?.find((d: any) => d.is_longest) || detailedSleepJson.data?.[0];
 
     // Map responses to our metrics schema
     return {
       readinessScore: readinessDoc?.score ?? 85,
       sleepScore: sleepDoc?.score ?? 80,
-      hrvAverage: sleepDoc?.average_hrv ?? 62,
-      restingHeartRate: sleepDoc?.resting_heart_rate ?? 58,
+      hrvAverage: detailedSleepDoc?.average_hrv ?? 62,
+      restingHeartRate: detailedSleepDoc?.lowest_heart_rate ?? 58,
     };
   } catch (error) {
     console.error('Error fetching Oura metrics, falling back to mock data:', error);
