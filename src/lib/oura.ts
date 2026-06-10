@@ -31,8 +31,20 @@ export async function fetchOuraMetrics(dateStr: string, accessToken: string): Pr
       next: { revalidate: 3600 },
     });
 
+    // Detailed sleep periods are indexed by bedtime start/end times in UTC.
+    // Querying with start_date=D & end_date=D often returns an empty list if bedtime_start is on day D-1.
+    // We query from D-1 to D+1 and find the record where the day field matches dateStr.
+    const date = new Date(dateStr);
+    const prevDate = new Date(date);
+    prevDate.setUTCDate(prevDate.getUTCDate() - 1);
+    const startDateStr = prevDate.toISOString().split('T')[0];
+
+    const nextDate = new Date(date);
+    nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+    const endDateStr = nextDate.toISOString().split('T')[0];
+
     // Fetch detailed sleep to retrieve average HRV and lowest heart rate
-    const detailedSleepUrl = `https://api.ouraring.com/v2/usercollection/sleep?start_date=${dateStr}&end_date=${dateStr}`;
+    const detailedSleepUrl = `https://api.ouraring.com/v2/usercollection/sleep?start_date=${startDateStr}&end_date=${endDateStr}`;
     const detailedSleepRes = await fetch(detailedSleepUrl, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -59,7 +71,11 @@ export async function fetchOuraMetrics(dateStr: string, accessToken: string): Pr
 
     const readinessDoc = readinessJson.data?.[0];
     const sleepDoc = sleepJson.data?.[0];
-    const detailedSleepDoc = detailedSleepJson.data?.find((d: any) => d.is_longest) || detailedSleepJson.data?.[0];
+    
+    // Find the record matching our target dateStr
+    const detailedSleepDoc = detailedSleepJson.data?.find((d: any) => d.day === dateStr && d.is_longest)
+      || detailedSleepJson.data?.find((d: any) => d.day === dateStr)
+      || detailedSleepJson.data?.[0];
 
     // Map responses to our metrics schema
     return {
@@ -78,3 +94,4 @@ export async function fetchOuraMetrics(dateStr: string, accessToken: string): Pr
     };
   }
 }
+
