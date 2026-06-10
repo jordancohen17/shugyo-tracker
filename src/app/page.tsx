@@ -12,33 +12,35 @@ import { Calendar, Save, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const DEFAULT_MOBILITY_CATEGORIES = [
   {
-    categoryName: 'Hips',
+    categoryName: 'Front Split Progression',
     exercises: [
-      { name: 'Active Pigeon', completed: false },
-      { name: 'Internal Rotation', completed: false },
-      { name: '90/90 Work', completed: false },
-    ],
-  },
-  {
-    categoryName: 'Spine',
-    exercises: [
-      { name: 'Jefferson Curl', completed: false },
-      { name: 'QL Extensions', completed: false },
-      { name: 'Back Extensions', completed: false },
-    ],
-  },
-  {
-    categoryName: 'Hamstrings',
-    exercises: [
-      { name: 'Elephant Walks', completed: false },
-      { name: 'Standing Fold', completed: false },
-    ],
-  },
-  {
-    categoryName: 'Hip Flexors',
-    exercises: [
+      { name: 'Front Split', completed: false },
       { name: 'Couch Stretch', completed: false },
       { name: 'Diagonal Stretch', completed: false },
+    ],
+  },
+  {
+    categoryName: 'Middle Split & Straddle',
+    exercises: [
+      { name: 'Middle Split', completed: false },
+      { name: 'Pancake', completed: false },
+      { name: '90/90 Work', completed: false },
+      { name: 'Internal Rotation', completed: false },
+    ],
+  },
+  {
+    categoryName: 'Pike & Posterior Fold',
+    exercises: [
+      { name: 'Pike', completed: false },
+      { name: 'Jefferson Curl', completed: false },
+    ],
+  },
+  {
+    categoryName: 'Spine & Hip Health',
+    exercises: [
+      { name: 'Active Pigeon', completed: false },
+      { name: 'QL Extensions', completed: false },
+      { name: 'Back Extensions', completed: false },
     ],
   },
 ];
