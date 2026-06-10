@@ -110,7 +110,26 @@ export default function Home() {
 
   // Client-side date initialization to prevent hydration issues
   useEffect(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    let todayStr = '';
+    try {
+      // Format in Eastern Time (EST/EDT) YYYY-MM-DD
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      const parts = formatter.formatToParts(new Date());
+      const partMap = Object.fromEntries(parts.map(p => [p.type, p.value]));
+      todayStr = `${partMap.year}-${partMap.month}-${partMap.day}`;
+    } catch (e) {
+      console.warn('Failed to format in America/New_York, falling back to local timezone:', e);
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const date = String(d.getDate()).padStart(2, '0');
+      todayStr = `${year}-${month}-${date}`;
+    }
     setDay(todayStr);
     fetchHistory();
   }, []);
