@@ -284,7 +284,7 @@ export default function Home() {
 
       {/* Main Layout Grid */}
       <main className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Hand: Autoregulation and Recovery */}
+        {/* Left Hand: Autoregulation */}
         <section className="lg:col-span-5 flex flex-col gap-8">
           <AutoregulationCard
             day={day}
@@ -292,13 +292,9 @@ export default function Home() {
             recommendation={recommendation}
             onSync={handleOuraSync}
           />
-          <RecoveryLogger
-            recovery={recovery}
-            onChange={setRecovery}
-          />
         </section>
 
-        {/* Right Hand: Workouts, Mobility, and Grappling */}
+        {/* Right Hand: Workouts, Mobility, Grappling, and Recovery */}
         <section className="lg:col-span-7 flex flex-col gap-8">
           <WorkoutLogger
             strength={strength}
@@ -313,6 +309,10 @@ export default function Home() {
           <GrapplingLogger
             grappling={grappling}
             onChange={setGrappling}
+          />
+          <RecoveryLogger
+            recovery={recovery}
+            onChange={setRecovery}
           />
         </section>
       </main>

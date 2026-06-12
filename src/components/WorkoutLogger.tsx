@@ -319,20 +319,28 @@ export default function WorkoutLogger({
                         placeholder="0"
                         className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome"
                       />
-                      <input
-                        type="number"
-                        value={set.sets || ''}
+                      <select
+                        value={set.sets ?? 0}
                         onChange={(e) => updateSet(exIndex, setIndex, 'sets', parseInt(e.target.value) || 0)}
-                        placeholder="1"
-                        className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome"
-                      />
-                      <input
-                        type="number"
-                        value={set.reps || ''}
+                        className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome cursor-pointer"
+                      >
+                        {Array.from({ length: 21 }, (_, i) => (
+                          <option key={i} value={i}>
+                            {i}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        value={set.reps ?? 0}
                         onChange={(e) => updateSet(exIndex, setIndex, 'reps', parseInt(e.target.value) || 0)}
-                        placeholder="5"
-                        className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome"
-                      />
+                        className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome cursor-pointer"
+                      >
+                        {Array.from({ length: 21 }, (_, i) => (
+                          <option key={i} value={i}>
+                            {i}
+                          </option>
+                        ))}
+                      </select>
                       <div className="flex justify-center items-center gap-2">
                         <input
                           type="checkbox"
