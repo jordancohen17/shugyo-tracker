@@ -9,6 +9,7 @@ import MobilityLogger from '@/components/MobilityLogger';
 import GrapplingLogger from '@/components/GrapplingLogger';
 import RecoveryLogger from '@/components/RecoveryLogger';
 import { Calendar, Save, CheckCircle, AlertTriangle } from 'lucide-react';
+import { buildExerciseHistoryMap } from '@/lib/workout-parser';
 
 const DEFAULT_MOBILITY_CATEGORIES = [
   {
@@ -65,6 +66,7 @@ const DEFAULT_EMS: EmsTraining = {
 
 export default function Home() {
   const [day, setDay] = useState<string>('');
+  const [localStorageLogs, setLocalStorageLogs] = useState<Record<string, any>>({});
   
   // Daily metrics states
   const [oura, setOura] = useState<OuraMetrics | null>(null);
@@ -134,7 +136,31 @@ export default function Home() {
     }
     setDay(todayStr);
     fetchHistory();
+    loadLocalStorageLogs();
   }, []);
+
+  const loadLocalStorageLogs = () => {
+    if (typeof window === 'undefined') return;
+    const localLogs: Record<string, any> = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('shugyo_log_')) {
+        try {
+          const entry = JSON.parse(localStorage.getItem(key) || '');
+          if (entry && entry.day) {
+            localLogs[entry.day] = entry;
+          }
+        } catch (e) {
+          // ignore parsing error
+        }
+      }
+    }
+    setLocalStorageLogs(localLogs);
+  };
+
+  const historyMap = React.useMemo(() => {
+    return buildExerciseHistoryMap(logs, localStorageLogs);
+  }, [logs, localStorageLogs]);
 
   // Fetch local cache or existing metrics when day changes (optional enhancement)
   useEffect(() => {
@@ -191,6 +217,7 @@ export default function Home() {
     // Save snapshot to cache
     const currentEntry = buildEntry(metrics, rec);
     localStorage.setItem(`shugyo_log_${day}`, JSON.stringify(currentEntry));
+    loadLocalStorageLogs();
   };
 
   const buildEntry = (currentOura = oura, currentRec = recommendation): DailyLogEntry => {
@@ -235,6 +262,7 @@ export default function Home() {
 
       // Cache the saved state
       localStorage.setItem(`shugyo_log_${day}`, JSON.stringify(entry));
+      loadLocalStorageLogs();
       
       // Refresh history list
       fetchHistory();
@@ -301,6 +329,7 @@ export default function Home() {
             ems={ems}
             onChangeStrength={setStrength}
             onChangeEms={setEms}
+            historyMap={historyMap}
           />
           <MobilityLogger
             mobility={mobility}

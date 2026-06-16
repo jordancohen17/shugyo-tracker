@@ -3,13 +3,14 @@
 
 import React from 'react';
 import { StrengthExercise, EmsTraining, StrengthSet } from '@/types';
-import { Plus, Trash2, Dumbbell, Zap } from 'lucide-react';
+import { Plus, Trash2, Dumbbell, Zap, History, RotateCcw } from 'lucide-react';
 
 interface WorkoutLoggerProps {
   strength: StrengthExercise[];
   ems: EmsTraining;
   onChangeStrength: (strength: StrengthExercise[]) => void;
   onChangeEms: (ems: EmsTraining) => void;
+  historyMap?: Record<string, { log: StrengthSet[]; date: string }>;
 }
 
 const COMMON_MOVEMENTS = [
@@ -69,13 +70,57 @@ export default function WorkoutLogger({
   ems,
   onChangeStrength,
   onChangeEms,
+  historyMap,
 }: WorkoutLoggerProps) {
   
   const applyTemplate = (dayName: string) => {
     const preset = TEMPLATE_WORKOUTS[dayName];
     if (preset) {
-      onChangeStrength(JSON.parse(JSON.stringify(preset)));
+      const templateCopy: StrengthExercise[] = JSON.parse(JSON.stringify(preset));
+      if (historyMap) {
+        for (const ex of templateCopy) {
+          if (!ex.name) continue;
+          const key = ex.name.trim().toLowerCase();
+          if (historyMap[key]) {
+            ex.log = JSON.parse(JSON.stringify(historyMap[key].log));
+          }
+        }
+      }
+      onChangeStrength(templateCopy);
     }
+  };
+
+  const applyHistoryToExercise = (exIndex: number, historicalLog: StrengthSet[]) => {
+    const newStrength = [...strength];
+    newStrength[exIndex].log = JSON.parse(JSON.stringify(historicalLog));
+    onChangeStrength(newStrength);
+  };
+
+  const findTemplateDefault = (exerciseName: string): StrengthSet[] | null => {
+    if (!exerciseName) return null;
+    const key = exerciseName.trim().toLowerCase();
+    for (const dayName of Object.keys(TEMPLATE_WORKOUTS)) {
+      const matchedEx = TEMPLATE_WORKOUTS[dayName].find(
+        (e) => e.name.trim().toLowerCase() === key
+      );
+      if (matchedEx) return matchedEx.log;
+    }
+    return null;
+  };
+
+  const isMatchingSets = (current: StrengthSet[], target: StrengthSet[]) => {
+    if (current.length !== target.length) return false;
+    for (let i = 0; i < current.length; i++) {
+      if (
+        current[i].weight !== target[i].weight ||
+        current[i].sets !== target[i].sets ||
+        current[i].reps !== target[i].reps ||
+        current[i].isAmrap !== target[i].isAmrap
+      ) {
+        return false;
+      }
+    }
+    return true;
   };
   // Add a new empty strength exercise row
   const addExercise = (name = '') => {
@@ -297,8 +342,79 @@ export default function WorkoutLogger({
                     value={ex.name}
                     onChange={(e) => updateExerciseName(exIndex, e.target.value)}
                     placeholder="e.g. Zercher Squat"
-                    className="w-full bg-washi border border-shibu px-3 py-1.5 text-sm outline-none focus:border-aizome"
+                    className="w-full bg-washi border border-shibu px-3 py-1.5 text-sm outline-none focus:border-aizome mb-2"
                   />
+                  {ex.name.trim() && (
+                    (() => {
+                      const key = ex.name.trim().toLowerCase();
+                      const historyEntry = historyMap?.[key];
+                      const templateDefault = findTemplateDefault(ex.name);
+                      const isHistoryMatch = historyEntry && isMatchingSets(ex.log, historyEntry.log);
+                      const isDefaultMatch = templateDefault && isMatchingSets(ex.log, templateDefault);
+                      
+                      return (
+                        <div className="p-2.5 bg-tatami/20 border border-shibu/30 rounded-sm flex flex-col gap-1.5 text-[11px] text-sumi mt-2">
+                          {/* History Entry Info */}
+                          {historyEntry ? (
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-stone font-semibold">
+                                <History className="w-3 h-3 text-aizome" /> Last Performance:
+                              </span>
+                              <span className="font-mono bg-washi px-1.5 py-0.5 border border-shibu/40 text-[9px] text-sumi">
+                                {historyEntry.log
+                                  .map((s) => `${s.weight}lbs ${s.sets}x${s.reps}${s.isAmrap ? ' AMRAP' : ''}`)
+                                  .join(', ')}
+                              </span>
+                              <span className="text-[9px] text-stone font-mono">
+                                ({historyEntry.date})
+                              </span>
+                              
+                              {isHistoryMatch ? (
+                                <span className="text-[9px] uppercase tracking-wider font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded-sm">
+                                  Loaded Last
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => applyHistoryToExercise(exIndex, historyEntry.log)}
+                                  className="text-[9px] text-aizome underline font-mono hover:text-sumi transition-colors"
+                                >
+                                  Apply Last Logged
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 text-[9px] text-stone font-mono">
+                              <History className="w-2.5 h-2.5 text-stone/40" /> No history recorded for this movement yet.
+                            </div>
+                          )}
+
+                          {/* Template Default Info & Reset */}
+                          {templateDefault && (
+                            <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-shibu/20 mt-0.5">
+                              <span className="font-mono text-[9px] uppercase tracking-wider text-stone">
+                                Template Default:
+                              </span>
+                              <span className="font-mono text-[9px] text-stone">
+                                {templateDefault
+                                  .map((s) => `${s.weight}lbs ${s.sets}x${s.reps}${s.isAmrap ? ' AMRAP' : ''}`)
+                                  .join(', ')}
+                              </span>
+                              {!isDefaultMatch && (
+                                <button
+                                  type="button"
+                                  onClick={() => applyHistoryToExercise(exIndex, templateDefault)}
+                                  className="text-[9px] text-stone underline font-mono hover:text-sumi transition-colors flex items-center gap-1"
+                                >
+                                  <RotateCcw className="w-2.5 h-2.5" /> Reset to Default
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()
+                  )}
                 </div>
 
                 {/* Sets List */}
