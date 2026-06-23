@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { StrengthExercise, EmsTraining, StrengthSet } from '@/types';
-import { Plus, Trash2, Dumbbell, Zap, History, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Dumbbell, Zap, History, RotateCcw, ChevronDown } from 'lucide-react';
 
 interface WorkoutLoggerProps {
   strength: StrengthExercise[];
@@ -11,6 +11,8 @@ interface WorkoutLoggerProps {
   onChangeStrength: (strength: StrengthExercise[]) => void;
   onChangeEms: (ems: EmsTraining) => void;
   historyMap?: Record<string, { log: StrengthSet[]; date: string }>;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 const COMMON_MOVEMENTS = [
@@ -71,6 +73,8 @@ export default function WorkoutLogger({
   onChangeStrength,
   onChangeEms,
   historyMap,
+  isCollapsed = false,
+  onToggleCollapse,
 }: WorkoutLoggerProps) {
   
   const applyTemplate = (dayName: string) => {
@@ -191,12 +195,27 @@ export default function WorkoutLogger({
       <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-sumi/20"></div>
 
       {/* Title */}
-      <div className="border-b border-shibu pb-4 mb-6">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-stone">Activity Logs</span>
-        <h2 className="text-xl font-serif font-light text-sumi mt-0.5 flex items-center gap-2">
-          <Dumbbell className="w-5 h-5 text-aizome" /> Strength & EMS Log
-        </h2>
+      <div className="border-b border-shibu pb-4 mb-6 flex justify-between items-end">
+        <div>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-stone">Activity Logs</span>
+          <h2 className="text-xl font-serif font-light text-sumi mt-0.5 flex items-center gap-2">
+            <Dumbbell className="w-5 h-5 text-aizome" /> Strength & EMS Log
+          </h2>
+        </div>
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="text-stone hover:text-sumi transition-colors pb-1"
+            aria-label={isCollapsed ? "Expand card" : "Collapse card"}
+          >
+            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`} />
+          </button>
+        )}
       </div>
+
+      {/* Collapsible Body */}
+      <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[3000px] opacity-100'}`}>
 
       {/* Katalyst EMS Suit Training Block */}
       <div className="mb-8 p-4 bg-tatami/40 border border-shibu rounded-sm">
@@ -214,62 +233,72 @@ export default function WorkoutLogger({
         </div>
 
         {ems.isEmsDay && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-2 border-t border-shibu/50">
+          <div className="flex flex-col gap-6 pt-2 border-t border-shibu/50">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-stone mb-2 font-mono">Program Type</label>
-              <select
-                value={ems.programType || 'None'}
-                onChange={(e) => updateEmsField('programType', e.target.value)}
-                className="w-full bg-washi border border-shibu px-3 py-1.5 text-xs text-sumi outline-none focus:border-aizome transition-colors"
-              >
-                <option value="None">Select Program...</option>
-                <option value="Strength">Strength</option>
-                <option value="Power">Power</option>
-                <option value="Cardio">Cardio</option>
-                <option value="Metabolic">Metabolic</option>
-              </select>
+              <label className="block text-[10px] uppercase tracking-wider text-stone mb-2 font-mono">Program Type</label>
+              <div className="flex flex-wrap gap-1.5">
+                {['Strength', 'Power', 'Cardio', 'Metabolic', 'None'].map((prog) => {
+                  const isSelected = (ems.programType || 'None') === prog;
+                  return (
+                    <button
+                      key={prog}
+                      type="button"
+                      onClick={() => updateEmsField('programType', prog === 'None' ? '' : prog)}
+                      className={`text-[10px] px-3 py-1.5 font-mono border transition-all duration-200 uppercase font-semibold tracking-wider ${
+                        isSelected
+                          ? 'bg-aizome text-washi border-aizome'
+                          : 'bg-washi text-stone border-shibu hover:border-sumi/50 hover:text-sumi'
+                      }`}
+                    >
+                      {prog}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             
-            <div>
-              <label className="block text-xs uppercase tracking-wider text-stone mb-1 font-mono">
-                Core Intensity: {ems.coreIntensity ?? 0}/10
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="10"
-                value={ems.coreIntensity ?? 0}
-                onChange={(e) => updateEmsField('coreIntensity', parseInt(e.target.value))}
-                className="w-full accent-aizome bg-shibu h-1 rounded"
-              />
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-stone mb-1 font-mono">
+                  Core Intensity: {ems.coreIntensity ?? 0}/10
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={ems.coreIntensity ?? 0}
+                  onChange={(e) => updateEmsField('coreIntensity', parseInt(e.target.value))}
+                  className="w-full accent-aizome bg-shibu h-1 rounded"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs uppercase tracking-wider text-stone mb-1 font-mono">
-                Upper Intensity: {ems.upperIntensity ?? 0}/10
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="10"
-                value={ems.upperIntensity ?? 0}
-                onChange={(e) => updateEmsField('upperIntensity', parseInt(e.target.value))}
-                className="w-full accent-aizome bg-shibu h-1 rounded"
-              />
-            </div>
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-stone mb-1 font-mono">
+                  Upper Intensity: {ems.upperIntensity ?? 0}/10
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={ems.upperIntensity ?? 0}
+                  onChange={(e) => updateEmsField('upperIntensity', parseInt(e.target.value))}
+                  className="w-full accent-aizome bg-shibu h-1 rounded"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs uppercase tracking-wider text-stone mb-1 font-mono">
-                Lower Intensity: {ems.lowerIntensity ?? 0}/10
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="10"
-                value={ems.lowerIntensity ?? 0}
-                onChange={(e) => updateEmsField('lowerIntensity', parseInt(e.target.value))}
-                className="w-full accent-aizome bg-shibu h-1 rounded"
-              />
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-stone mb-1 font-mono">
+                  Lower Intensity: {ems.lowerIntensity ?? 0}/10
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={ems.lowerIntensity ?? 0}
+                  onChange={(e) => updateEmsField('lowerIntensity', parseInt(e.target.value))}
+                  className="w-full accent-aizome bg-shibu h-1 rounded"
+                />
+              </div>
             </div>
           </div>
         )}
@@ -435,28 +464,47 @@ export default function WorkoutLogger({
                         placeholder="0"
                         className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome"
                       />
-                      <select
-                        value={set.sets ?? 0}
-                        onChange={(e) => updateSet(exIndex, setIndex, 'sets', parseInt(e.target.value) || 0)}
-                        className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome cursor-pointer"
-                      >
-                        {Array.from({ length: 21 }, (_, i) => (
-                          <option key={i} value={i}>
-                            {i}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={set.reps ?? 0}
-                        onChange={(e) => updateSet(exIndex, setIndex, 'reps', parseInt(e.target.value) || 0)}
-                        className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome cursor-pointer"
-                      >
-                        {Array.from({ length: 21 }, (_, i) => (
-                          <option key={i} value={i}>
-                            {i}
-                          </option>
-                        ))}
-                      </select>
+                      {/* Sets Counter */}
+                      <div className="flex items-center border border-shibu bg-washi rounded-sm max-w-[80px] h-7">
+                        <button
+                          type="button"
+                          onClick={() => updateSet(exIndex, setIndex, 'sets', Math.max(0, (set.sets ?? 0) - 1))}
+                          className="w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
+                        >
+                          -
+                        </button>
+                        <span className="flex-1 text-center text-xs font-mono text-sumi">
+                          {set.sets ?? 0}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => updateSet(exIndex, setIndex, 'sets', (set.sets ?? 0) + 1)}
+                          className="w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      {/* Reps Counter */}
+                      <div className="flex items-center border border-shibu bg-washi rounded-sm max-w-[80px] h-7">
+                        <button
+                          type="button"
+                          onClick={() => updateSet(exIndex, setIndex, 'reps', Math.max(0, (set.reps ?? 0) - 1))}
+                          className="w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
+                        >
+                          -
+                        </button>
+                        <span className="flex-1 text-center text-xs font-mono text-sumi">
+                          {set.reps ?? 0}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => updateSet(exIndex, setIndex, 'reps', (set.reps ?? 0) + 1)}
+                          className="w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
+                        >
+                          +
+                        </button>
+                      </div>
                       <div className="flex justify-center items-center gap-2">
                         <input
                           type="checkbox"
@@ -489,6 +537,7 @@ export default function WorkoutLogger({
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   );

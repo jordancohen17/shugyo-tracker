@@ -3,14 +3,16 @@
 
 import React from 'react';
 import { RecoveryHabits } from '@/types';
-import { Leaf, Flame, Snowflake, Sparkles } from 'lucide-react';
+import { Leaf, Flame, Snowflake, Sparkles, ChevronDown } from 'lucide-react';
 
 interface RecoveryLoggerProps {
   recovery: RecoveryHabits;
   onChange: (recovery: RecoveryHabits) => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-export default function RecoveryLogger({ recovery, onChange }: RecoveryLoggerProps) {
+export default function RecoveryLogger({ recovery, onChange, isCollapsed = false, onToggleCollapse }: RecoveryLoggerProps) {
   
   const updateSaunaField = (field: 'completed' | 'temperatureFahrenheit' | 'durationMinutes', value: any) => {
     onChange({
@@ -49,12 +51,27 @@ export default function RecoveryLogger({ recovery, onChange }: RecoveryLoggerPro
       <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-sumi/20"></div>
 
       {/* Title */}
-      <div className="border-b border-shibu pb-4 mb-6">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-stone">Regeneration Practices</span>
-        <h2 className="text-xl font-serif font-light text-sumi mt-0.5 flex items-center gap-2">
-          <Leaf className="w-5 h-5 text-aizome" /> Recovery Habit Tracker
-        </h2>
+      <div className="border-b border-shibu pb-4 mb-6 flex justify-between items-end">
+        <div>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-stone">Regeneration Practices</span>
+          <h2 className="text-xl font-serif font-light text-sumi mt-0.5 flex items-center gap-2">
+            <Leaf className="w-5 h-5 text-aizome" /> Recovery Habit Tracker
+          </h2>
+        </div>
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="text-stone hover:text-sumi transition-colors pb-1"
+            aria-label={isCollapsed ? "Expand card" : "Collapse card"}
+          >
+            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`} />
+          </button>
+        )}
       </div>
+
+      {/* Collapsible Body */}
+      <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[1000px] opacity-100'}`}>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Infrared Sauna Section */}
@@ -196,6 +213,7 @@ export default function RecoveryLogger({ recovery, onChange }: RecoveryLoggerPro
             </label>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

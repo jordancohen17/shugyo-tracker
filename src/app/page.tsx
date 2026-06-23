@@ -9,7 +9,7 @@ import MobilityLogger from '@/components/MobilityLogger';
 import GrapplingLogger from '@/components/GrapplingLogger';
 import RecoveryLogger from '@/components/RecoveryLogger';
 import StressorLogger from '@/components/StressorLogger';
-import { Calendar, Save, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Calendar, Save, CheckCircle, AlertTriangle, Sunrise, Dumbbell, Sparkles, History } from 'lucide-react';
 import { buildExerciseHistoryMap } from '@/lib/workout-parser';
 
 const DEFAULT_MOBILITY_CATEGORIES = [
@@ -83,6 +83,24 @@ const DEFAULT_EMS: EmsTraining = {
 export default function Home() {
   const [day, setDay] = useState<string>('');
   const [localStorageLogs, setLocalStorageLogs] = useState<Record<string, any>>({});
+  
+  // Mobile UI States
+  const [activeTab, setActiveTab] = useState<'morning' | 'training' | 'regen' | 'archive'>('morning');
+  const [collapsedCards, setCollapsedCards] = useState<Record<string, boolean>>({
+    autoreg: false,
+    workout: false,
+    grappling: false,
+    mobility: false,
+    recovery: false,
+    stressors: false,
+  });
+
+  const toggleCardCollapse = (key: string) => {
+    setCollapsedCards((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
   
   // Daily metrics states
   const [oura, setOura] = useState<OuraMetrics | null>(null);
@@ -331,47 +349,145 @@ export default function Home() {
       </header>
 
       {/* Main Layout Grid */}
-      <main className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Hand: Autoregulation */}
-        <section className="lg:col-span-5 flex flex-col gap-8">
-          <AutoregulationCard
-            day={day}
-            oura={oura}
-            recommendation={recommendation}
-            onSync={handleOuraSync}
-          />
-        </section>
+      <main>
+        {/* Desktop Layout (hidden on mobile) */}
+        <div className="hidden lg:grid lg:grid-cols-12 gap-8 items-start">
+          {/* Left Hand: Autoregulation */}
+          <section className="lg:col-span-5 flex flex-col gap-8">
+            <AutoregulationCard
+              day={day}
+              oura={oura}
+              recommendation={recommendation}
+              onSync={handleOuraSync}
+            />
+          </section>
 
-        {/* Right Hand: Workouts, Mobility, Grappling, and Recovery */}
-        <section className="lg:col-span-7 flex flex-col gap-8">
-          <WorkoutLogger
-            strength={strength}
-            ems={ems}
-            onChangeStrength={setStrength}
-            onChangeEms={setEms}
-            historyMap={historyMap}
-          />
-          <MobilityLogger
-            mobility={mobility}
-            onChange={setMobility}
-          />
-          <GrapplingLogger
-            grappling={grappling}
-            onChange={setGrappling}
-          />
-          <RecoveryLogger
-            recovery={recovery}
-            onChange={setRecovery}
-          />
-          <StressorLogger
-            stressors={stressors}
-            onChange={setStressors}
-          />
-        </section>
+          {/* Right Hand: Workouts, Mobility, Grappling, and Recovery */}
+          <section className="lg:col-span-7 flex flex-col gap-8">
+            <WorkoutLogger
+              strength={strength}
+              ems={ems}
+              onChangeStrength={setStrength}
+              onChangeEms={setEms}
+              historyMap={historyMap}
+            />
+            <MobilityLogger
+              mobility={mobility}
+              onChange={setMobility}
+            />
+            <GrapplingLogger
+              grappling={grappling}
+              onChange={setGrappling}
+            />
+            <RecoveryLogger
+              recovery={recovery}
+              onChange={setRecovery}
+            />
+            <StressorLogger
+              stressors={stressors}
+              onChange={setStressors}
+            />
+          </section>
+        </div>
+
+        {/* Mobile Tab-Based Layout (hidden on desktop) */}
+        <div className="block lg:hidden w-full space-y-6">
+          {activeTab === 'morning' && (
+            <AutoregulationCard
+              day={day}
+              oura={oura}
+              recommendation={recommendation}
+              onSync={handleOuraSync}
+              isCollapsed={collapsedCards.autoreg}
+              onToggleCollapse={() => toggleCardCollapse('autoreg')}
+            />
+          )}
+
+          {activeTab === 'training' && (
+            <>
+              <WorkoutLogger
+                strength={strength}
+                ems={ems}
+                onChangeStrength={setStrength}
+                onChangeEms={setEms}
+                historyMap={historyMap}
+                isCollapsed={collapsedCards.workout}
+                onToggleCollapse={() => toggleCardCollapse('workout')}
+              />
+              <GrapplingLogger
+                grappling={grappling}
+                onChange={setGrappling}
+                isCollapsed={collapsedCards.grappling}
+                onToggleCollapse={() => toggleCardCollapse('grappling')}
+              />
+            </>
+          )}
+
+          {activeTab === 'regen' && (
+            <>
+              <MobilityLogger
+                mobility={mobility}
+                onChange={setMobility}
+                isCollapsed={collapsedCards.mobility}
+                onToggleCollapse={() => toggleCardCollapse('mobility')}
+              />
+              <RecoveryLogger
+                recovery={recovery}
+                onChange={setRecovery}
+                isCollapsed={collapsedCards.recovery}
+                onToggleCollapse={() => toggleCardCollapse('recovery')}
+              />
+              <StressorLogger
+                stressors={stressors}
+                onChange={setStressors}
+                isCollapsed={collapsedCards.stressors}
+                onToggleCollapse={() => toggleCardCollapse('stressors')}
+              />
+            </>
+          )}
+
+          {activeTab === 'archive' && (
+            <div className="border border-sumi/10 bg-washi shadow-sm p-6 relative">
+              <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-sumi/20"></div>
+              <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-sumi/20"></div>
+              <div className="border-b border-shibu pb-4 mb-6">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-stone">Historical Log</span>
+                <h2 className="text-xl font-serif font-light text-sumi mt-0.5 flex items-center gap-2">
+                  <History className="w-5 h-5 text-aizome" /> Completed Logs
+                </h2>
+              </div>
+              {isLoadingHistory ? (
+                <div className="text-center py-8 text-xs text-stone font-mono italic">
+                  Loading database rows...
+                </div>
+              ) : logs.length === 0 ? (
+                <div className="text-center py-8 text-xs text-stone italic">
+                  No past logs found in sheet.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {logs.map((log, index) => (
+                    <div key={index} className="p-4 bg-tatami/40 border border-shibu rounded-sm text-xs space-y-2">
+                      <div className="flex justify-between font-mono font-medium text-sumi border-b border-shibu/60 pb-1.5">
+                        <span className="text-[11px] font-semibold">{log.day}</span>
+                        <span className="text-[10px] text-stone font-mono">{log.grappling || 'No BJJ'}</span>
+                      </div>
+                      <div className="text-stone leading-relaxed space-y-1.5 font-mono text-[10px]">
+                        <p><strong className="text-sumi font-semibold">Oura:</strong> {log.oura || '—'}</p>
+                        <p className="whitespace-pre-line"><strong className="text-sumi font-semibold">Workout:</strong> {log.workout || '—'}</p>
+                        <p><strong className="text-sumi font-semibold">Stressors:</strong> {log.stressors || 'None'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </main>
 
-      {/* Collapsible History Section */}
-      <section className="bg-washi border border-sumi/10 shadow-sm p-6 md:p-8 relative mt-4">
+      {/* Collapsible History Section (Desktop Only) */}
+      <section className="hidden lg:block bg-washi border border-sumi/10 shadow-sm p-6 md:p-8 relative mt-4">
         {/* Corner Shoji details */}
         <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-sumi/20"></div>
         <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-sumi/20"></div>
@@ -442,7 +558,7 @@ export default function Home() {
       </section>
 
       {/* Sticky Save / Sync Status Bar at bottom */}
-      <footer className="mt-8 border-t border-shibu pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <footer className="mt-8 border-t border-shibu pt-6 pb-20 lg:pb-0 flex flex-col sm:flex-row justify-between items-center gap-4">
         {/* Status notification */}
         <div className="flex-1 w-full sm:w-auto">
           {saveStatus.type === 'success' && (
@@ -469,6 +585,35 @@ export default function Home() {
           {isSaving ? 'Saving Journal...' : 'Save to Google Sheet'}
         </button>
       </footer>
+
+      {/* Fixed Mobile Tab Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-washi border-t border-sumi/10 shadow-lg px-2 py-1.5 flex items-center justify-around z-50 block lg:hidden">
+        {([
+          { id: 'morning', label: 'Morning', icon: <Sunrise className="w-5 h-5" /> },
+          { id: 'training', label: 'Training', icon: <Dumbbell className="w-5 h-5" /> },
+          { id: 'regen', label: 'Regen', icon: <Sparkles className="w-5 h-5" /> },
+          { id: 'archive', label: 'Archive', icon: <History className="w-5 h-5" /> },
+        ] as const).map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 flex flex-col items-center justify-center py-1 transition-all duration-200 ${
+                isActive
+                  ? 'text-aizome font-semibold scale-105'
+                  : 'text-stone hover:text-sumi'
+              }`}
+            >
+              {tab.icon}
+              <span className="text-[9px] font-mono tracking-wider mt-1 uppercase">
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

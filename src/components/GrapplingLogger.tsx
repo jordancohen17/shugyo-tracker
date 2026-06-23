@@ -3,11 +3,13 @@
 
 import React from 'react';
 import { GrapplingLog } from '@/types';
-import { Shield, Flame, BookOpen } from 'lucide-react';
+import { Shield, Flame, BookOpen, ChevronDown } from 'lucide-react';
 
 interface GrapplingLoggerProps {
   grappling: GrapplingLog | null;
   onChange: (grappling: GrapplingLog | null) => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 const INTENSITY_DESCRIPTIONS = {
@@ -18,7 +20,12 @@ const INTENSITY_DESCRIPTIONS = {
   5: 'Absolute Battle (Maximal effort, competition simulation)',
 };
 
-export default function GrapplingLogger({ grappling, onChange }: GrapplingLoggerProps) {
+export default function GrapplingLogger({
+  grappling,
+  onChange,
+  isCollapsed = false,
+  onToggleCollapse,
+}: GrapplingLoggerProps) {
   
   const handleToggleActive = (active: boolean) => {
     if (active) {
@@ -48,13 +55,25 @@ export default function GrapplingLogger({ grappling, onChange }: GrapplingLogger
 
       {/* Header */}
       <div className="flex items-center justify-between border-b border-shibu pb-4 mb-6">
-        <div>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-stone">Grappling Sessions</span>
-          <h2 className="text-xl font-serif font-light text-sumi mt-0.5 flex items-center gap-2">
-            <Shield className="w-5 h-5 text-aizome" /> BJJ & Wrestling Log
-          </h2>
+        <div className="flex items-center justify-between flex-1 mr-4">
+          <div>
+            <span className="text-[10px] font-mono uppercase tracking-widest text-stone">Grappling Sessions</span>
+            <h2 className="text-xl font-serif font-light text-sumi mt-0.5 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-aizome" /> BJJ & Wrestling Log
+            </h2>
+          </div>
+          {onToggleCollapse && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="text-stone hover:text-sumi transition-colors"
+              aria-label={isCollapsed ? "Expand card" : "Collapse card"}
+            >
+              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`} />
+            </button>
+          )}
         </div>
-        <label className="flex items-center gap-2 cursor-pointer text-xs font-mono uppercase text-stone">
+        <label className="flex items-center gap-2 cursor-pointer text-xs font-mono uppercase text-stone flex-shrink-0">
           <input
             type="checkbox"
             checked={!!grappling}
@@ -64,6 +83,9 @@ export default function GrapplingLogger({ grappling, onChange }: GrapplingLogger
           Logged Grappling Today
         </label>
       </div>
+
+      {/* Collapsible Body */}
+      <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[1000px] opacity-100'}`}>
 
       {grappling ? (
         <div className="space-y-6">
@@ -135,6 +157,7 @@ export default function GrapplingLogger({ grappling, onChange }: GrapplingLogger
           No grappling logged today. Toggle the switch above to record a BJJ or Wrestling session.
         </div>
       )}
+      </div>
     </div>
   );
 }
