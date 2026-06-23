@@ -91,6 +91,30 @@ function formatGrapplingCell(grappling: DailyLogEntry['grappling']): string {
   return `${grappling.matIntensity} (Intensity) | Duration: ${grappling.durationMinutes}m | Focus: ${grappling.technicalFocus}`;
 }
 
+/**
+ * Formats the lifestyle stressors log.
+ */
+function formatStressorsCell(stressors: DailyLogEntry['stressors']): string {
+  if (!stressors) return '';
+  const parts: string[] = [];
+
+  if (stressors.alcohol.consumed) {
+    const drinks = stressors.alcohol.numberOfDrinks || 1;
+    const timing = stressors.alcohol.lateConsumption ? ' (Late)' : '';
+    parts.push(`Alcohol: ${drinks} drink${drinks > 1 ? 's' : ''}${timing}`);
+  }
+
+  if (stressors.lateHeavyMeal) {
+    parts.push('Late Heavy Meal');
+  }
+
+  if (stressors.subjectiveStress > 1) {
+    parts.push(`Stress: ${stressors.subjectiveStress}/5`);
+  }
+
+  return parts.join(' | ') || 'None';
+}
+
 import fs from 'fs';
 import path from 'path';
 
@@ -121,6 +145,7 @@ export async function syncLogToGoogleSheet(entry: DailyLogEntry, sheetId: string
       oura: formatOuraCell(entry.oura),
       workout: formatWorkoutCell(entry.workout),
       grappling: formatGrapplingCell(entry.grappling),
+      stressors: formatStressorsCell(entry.stressors),
       timestamp: new Date().toISOString()
     };
     
@@ -167,7 +192,7 @@ export async function syncLogToGoogleSheet(entry: DailyLogEntry, sheetId: string
     });
   }
 
-  const rangeName = `${tabName}!A:D`; // Scopes first 4 columns
+  const rangeName = `${tabName}!A:E`; // Scopes first 5 columns
 
   // Fetch all rows to locate if the Day already exists
   const response = await sheets.spreadsheets.values.get({
@@ -178,12 +203,13 @@ export async function syncLogToGoogleSheet(entry: DailyLogEntry, sheetId: string
   const rows = response.data.values || [];
   const headers = rows[0] || [];
 
-  // Row format to write: [Day, Oura Readiness, Workout (weight, sets, reps), BJJ Mat Intensity (1-5)]
+  // Row format to write: [Day, Oura Readiness, Workout, BJJ Intensity, Lifestyle Stressors]
   const rowData = [
     entry.day,
     formatOuraCell(entry.oura),
     formatWorkoutCell(entry.workout),
     formatGrapplingCell(entry.grappling),
+    formatStressorsCell(entry.stressors),
   ];
 
   // Find index of matching day (skipping header row)
@@ -195,10 +221,10 @@ export async function syncLogToGoogleSheet(entry: DailyLogEntry, sheetId: string
     }
   }
 
-  if (matchingRowIndex !== -1) {
+    if (matchingRowIndex !== -1) {
     // Update existing row
     // Google Sheets is 1-indexed, so matchingRowIndex + 1 is the actual row number
-    const updateRange = `${tabName}!A${matchingRowIndex + 1}:D${matchingRowIndex + 1}`;
+    const updateRange = `${tabName}!A${matchingRowIndex + 1}:E${matchingRowIndex + 1}`;
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: updateRange,
@@ -212,7 +238,7 @@ export async function syncLogToGoogleSheet(entry: DailyLogEntry, sheetId: string
     // Append new row
     if (rows.length === 0) {
       // Write header row first for a clean sheet
-      const defaultHeaders = ['Day', 'Oura Readiness', 'Workout (Strength + EMS + Mobility)', 'BJJ Mat Intensity'];
+      const defaultHeaders = ['Day', 'Oura Readiness', 'Workout (Strength + EMS + Mobility)', 'BJJ Mat Intensity', 'Lifestyle Stressors'];
       await sheets.spreadsheets.values.append({
         spreadsheetId: sheetId,
         range: `${tabName}!A1`,
@@ -261,7 +287,7 @@ export async function fetchLogsFromGoogleSheet(sheetId: string): Promise<any[]> 
 
   try {
     const sheets = getSheetsClient();
-    const rangeName = `${tabName}!A:D`;
+    const rangeName = `${tabName}!A:E`;
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
@@ -277,6 +303,7 @@ export async function fetchLogsFromGoogleSheet(sheetId: string): Promise<any[]> 
       oura: row[1] || '',
       workout: row[2] || '',
       grappling: row[3] || '',
+      stressors: row[4] || '',
     }));
   } catch (error) {
     console.error('Error fetching logs from Google Sheets, returning empty:', error);

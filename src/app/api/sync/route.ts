@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     const ouraMetrics = await fetchOuraMetrics(day, ouraToken);
 
     // 2. Generate Autoregulation recommendation via Gemini or Rule Engine
-    const recommendation = await generateAutoregulationRecommendation(ouraMetrics, geminiKey);
+    const recommendation = await generateAutoregulationRecommendation(ouraMetrics, undefined, geminiKey);
 
     // 3. Write or update Google Sheet entry
     let syncStatus = null;
@@ -46,6 +46,11 @@ export async function GET(request: Request) {
           sauna: { completed: false },
           coldPlunge: { completed: false },
           sleepHygiene: { noScreensBeforeBed: false, magnesiumTaken: false, coolRoomTemp: false },
+        },
+        stressors: {
+          alcohol: { consumed: false, numberOfDrinks: 0, lateConsumption: false },
+          lateHeavyMeal: false,
+          subjectiveStress: 1,
         },
         llmRecommendation: recommendation,
       };

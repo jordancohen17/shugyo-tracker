@@ -67,6 +67,16 @@ export interface RecoveryHabits {
   };
 }
 
+export interface LifestyleStressors {
+  alcohol: {
+    consumed: boolean;
+    numberOfDrinks?: number;
+    lateConsumption: boolean; // within 3 hours of bed
+  };
+  lateHeavyMeal: boolean;      // eating within 3 hours of sleep
+  subjectiveStress: 1 | 2 | 3 | 4 | 5; // 1 = peaceful, 5 = high stress
+}
+
 // The main aggregated record representing a single day's log entry
 export interface DailyLogEntry {
   day: string; // ISO date format (YYYY-MM-DD)
@@ -78,5 +88,6 @@ export interface DailyLogEntry {
   } | null;
   grappling: GrapplingLog | null;
   recovery: RecoveryHabits;
+  stressors?: LifestyleStressors; // Stressors that degrade recovery/readiness
   llmRecommendation?: string; // Cache the morning autoregulation recommendation
 }

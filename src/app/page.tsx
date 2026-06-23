@@ -2,12 +2,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DailyLogEntry, OuraMetrics, StrengthExercise, EmsTraining, MobilityLog, GrapplingLog, RecoveryHabits } from '@/types';
+import { DailyLogEntry, OuraMetrics, StrengthExercise, EmsTraining, MobilityLog, GrapplingLog, RecoveryHabits, LifestyleStressors } from '@/types';
 import AutoregulationCard from '@/components/AutoregulationCard';
 import WorkoutLogger from '@/components/WorkoutLogger';
 import MobilityLogger from '@/components/MobilityLogger';
 import GrapplingLogger from '@/components/GrapplingLogger';
 import RecoveryLogger from '@/components/RecoveryLogger';
+import StressorLogger from '@/components/StressorLogger';
 import { Calendar, Save, CheckCircle, AlertTriangle } from 'lucide-react';
 import { buildExerciseHistoryMap } from '@/lib/workout-parser';
 
@@ -25,8 +26,6 @@ const DEFAULT_MOBILITY_CATEGORIES = [
     exercises: [
       { name: 'Middle Split', completed: false },
       { name: 'Pancake', completed: false },
-      { name: '90/90 Work', completed: false },
-      { name: 'Internal Rotation', completed: false },
     ],
   },
   {
@@ -37,11 +36,18 @@ const DEFAULT_MOBILITY_CATEGORIES = [
     ],
   },
   {
-    categoryName: 'Spine & Hip Health',
+    categoryName: 'Spine Health',
     exercises: [
-      { name: 'Active Pigeon', completed: false },
       { name: 'QL Extensions', completed: false },
       { name: 'Back Extensions', completed: false },
+    ],
+  },
+  {
+    categoryName: 'Hips',
+    exercises: [
+      { name: 'Active Pigeon', completed: false },
+      { name: '90/90 Work', completed: false },
+      { name: 'PT planks', completed: false },
     ],
   },
 ];
@@ -54,6 +60,16 @@ const DEFAULT_RECOVERY: RecoveryHabits = {
     magnesiumTaken: false,
     coolRoomTemp: false,
   },
+};
+
+const DEFAULT_STRESSORS: LifestyleStressors = {
+  alcohol: {
+    consumed: false,
+    numberOfDrinks: 0,
+    lateConsumption: false,
+  },
+  lateHeavyMeal: false,
+  subjectiveStress: 1,
 };
 
 const DEFAULT_EMS: EmsTraining = {
@@ -81,6 +97,7 @@ export default function Home() {
   });
   const [grappling, setGrappling] = useState<GrapplingLog | null>(null);
   const [recovery, setRecovery] = useState<RecoveryHabits>(DEFAULT_RECOVERY);
+  const [stressors, setStressors] = useState<LifestyleStressors>(DEFAULT_STRESSORS);
 
   // Sync / Save statuses
   const [isSaving, setIsSaving] = useState(false);
@@ -183,6 +200,7 @@ export default function Home() {
         }
         setGrappling(parsed.grappling);
         setRecovery(parsed.recovery);
+        setStressors(parsed.stressors || DEFAULT_STRESSORS);
         return;
       } catch (e) {
         console.error('Error loading cache', e);
@@ -195,6 +213,7 @@ export default function Home() {
     resetWorkoutFields();
     setGrappling(null);
     setRecovery(DEFAULT_RECOVERY);
+    setStressors(DEFAULT_STRESSORS);
   }, [day]);
 
   const resetWorkoutFields = () => {
@@ -231,6 +250,7 @@ export default function Home() {
       },
       grappling,
       recovery,
+      stressors,
       llmRecommendation: currentRec || undefined,
     };
   };
@@ -343,6 +363,10 @@ export default function Home() {
             recovery={recovery}
             onChange={setRecovery}
           />
+          <StressorLogger
+            stressors={stressors}
+            onChange={setStressors}
+          />
         </section>
       </main>
 
@@ -385,7 +409,8 @@ export default function Home() {
                       <th className="py-3 px-4 w-32 font-semibold">Date</th>
                       <th className="py-3 px-4 w-48 font-semibold">Oura Telemetry</th>
                       <th className="py-3 px-4 font-semibold">Logged Activity (Strength / EMS / Mobility)</th>
-                      <th className="py-3 px-4 w-48 font-semibold">BJJ Intensity</th>
+                      <th className="py-3 px-4 w-32 font-semibold">BJJ Intensity</th>
+                      <th className="py-3 px-4 w-48 font-semibold">Stressors</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -402,6 +427,9 @@ export default function Home() {
                         </td>
                         <td className="py-3.5 px-4 text-stone align-top whitespace-pre-line leading-relaxed">
                           {log.grappling || '—'}
+                        </td>
+                        <td className="py-3.5 px-4 text-stone align-top whitespace-pre-line leading-relaxed">
+                          {log.stressors || '—'}
                         </td>
                       </tr>
                     ))}
