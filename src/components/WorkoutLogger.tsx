@@ -860,8 +860,6 @@ export default function WorkoutLogger({
           </div>
         </div>
       )}
-      </div>
-      </div>
     </div>
   );
 }
