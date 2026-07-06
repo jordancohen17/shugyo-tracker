@@ -53,16 +53,9 @@ export async function fetchOuraMetrics(dateStr: string, accessToken: string): Pr
     });
 
     if (!readinessRes.ok || !sleepRes.ok || !detailedSleepRes.ok) {
-      console.error(
+      throw new Error(
         `Oura API returned error: Readiness: ${readinessRes.status} (${readinessRes.statusText}), Sleep: ${sleepRes.status} (${sleepRes.statusText}), Detailed Sleep: ${detailedSleepRes.status} (${detailedSleepRes.statusText})`
       );
-      console.warn('Falling back to mock Oura metrics for verification.');
-      return {
-        readinessScore: 85,
-        sleepScore: 80,
-        hrvAverage: 62,
-        restingHeartRate: 58,
-      };
     }
 
     const readinessJson = await readinessRes.json();
@@ -72,26 +65,30 @@ export async function fetchOuraMetrics(dateStr: string, accessToken: string): Pr
     const readinessDoc = readinessJson.data?.[0];
     const sleepDoc = sleepJson.data?.[0];
     
-    // Find the record matching our target dateStr
-    const detailedSleepDoc = detailedSleepJson.data?.find((d: any) => d.day === dateStr && d.is_longest)
-      || detailedSleepJson.data?.find((d: any) => d.day === dateStr)
+    // Find the record matching our target dateStr.
+    // In API v2, the primary sleep period has type: 'long_sleep'.
+    // If that is not explicitly found, we fallback to sorting matching records by time_in_bed to find the longest sleep period.
+    const detailedSleepDoc = detailedSleepJson.data?.find((d: any) => d.day === dateStr && d.type === 'long_sleep')
+      || detailedSleepJson.data?.filter((d: any) => d.day === dateStr)
+          .sort((a: any, b: any) => (b.time_in_bed || 0) - (a.time_in_bed || 0))[0]
       || detailedSleepJson.data?.[0];
+
+    // If no readiness or sleep records are found for this day, return null so we don't present fake/placeholder data.
+    if (!readinessDoc && !sleepDoc && !detailedSleepDoc) {
+      console.warn(`No Oura data found for date ${dateStr}`);
+      return null;
+    }
 
     // Map responses to our metrics schema
     return {
-      readinessScore: readinessDoc?.score ?? 85,
-      sleepScore: sleepDoc?.score ?? 80,
-      hrvAverage: detailedSleepDoc?.average_hrv ?? 62,
-      restingHeartRate: detailedSleepDoc?.lowest_heart_rate ?? 58,
-    };
+      readinessScore: readinessDoc?.score,
+      sleepScore: sleepDoc?.score,
+      hrvAverage: detailedSleepDoc?.average_hrv,
+      restingHeartRate: detailedSleepDoc?.lowest_heart_rate,
+    } as any; // Cast to any to bypass strict type check for undefined values, or we'll update the type definition next
   } catch (error) {
-    console.error('Error fetching Oura metrics, falling back to mock data:', error);
-    return {
-      readinessScore: 85,
-      sleepScore: 80,
-      hrvAverage: 62,
-      restingHeartRate: 58,
-    };
+    console.error('Error fetching Oura metrics:', error);
+    throw error;
   }
 }
 

@@ -103,7 +103,7 @@ export default function AutoregulationCard({
             </div>
             <p className="text-3xl font-light text-sumi">{oura?.readinessScore ?? '—'}</p>
             <span className="text-[9px] text-stone font-medium">
-              {oura ? (oura.readinessScore >= 85 ? 'Optimal' : oura.readinessScore >= 70 ? 'Good' : 'Pay Attention') : 'No Sync'}
+              {oura && oura.readinessScore !== undefined ? (oura.readinessScore >= 85 ? 'Optimal' : oura.readinessScore >= 70 ? 'Good' : 'Pay Attention') : 'No Sync'}
             </span>
           </div>
 

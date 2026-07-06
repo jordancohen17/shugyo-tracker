@@ -80,7 +80,11 @@ function formatWorkoutCell(workout: DailyLogEntry['workout']): string {
  */
 function formatOuraCell(oura: DailyLogEntry['oura']): string {
   if (!oura) return '';
-  return `Readiness: ${oura.readinessScore} | Sleep: ${oura.sleepScore} | HRV: ${oura.hrvAverage}ms | RHR: ${oura.restingHeartRate}bpm`;
+  const readiness = oura.readinessScore !== undefined ? oura.readinessScore : '—';
+  const sleep = oura.sleepScore !== undefined ? oura.sleepScore : '—';
+  const hrv = oura.hrvAverage !== undefined ? `${oura.hrvAverage}ms` : '—';
+  const rhr = oura.restingHeartRate !== undefined ? `${oura.restingHeartRate}bpm` : '—';
+  return `Readiness: ${readiness} | Sleep: ${sleep} | HRV: ${hrv} | RHR: ${rhr}`;
 }
 
 /**

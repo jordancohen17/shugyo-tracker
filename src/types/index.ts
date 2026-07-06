@@ -1,10 +1,10 @@
 // src/types/index.ts
 
 export interface OuraMetrics {
-  readinessScore: number;
-  sleepScore: number;
-  hrvAverage: number;
-  restingHeartRate: number;
+  readinessScore?: number;
+  sleepScore?: number;
+  hrvAverage?: number;
+  restingHeartRate?: number;
 }
 
 export interface StrengthSet {
