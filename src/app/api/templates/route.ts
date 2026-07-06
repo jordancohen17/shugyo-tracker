@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import templatesData from '@/data/workout-templates.json';
 
 const filePath = path.join(process.cwd(), 'src/data/workout-templates.json');
 
@@ -9,8 +10,8 @@ export async function GET() {
     const data = await fs.readFile(filePath, 'utf8');
     return NextResponse.json(JSON.parse(data));
   } catch (error: any) {
-    console.error('Error reading templates:', error);
-    return NextResponse.json({ error: 'Failed to read templates' }, { status: 500 });
+    console.warn('FileSystem read failed, falling back to bundled templates:', error);
+    return NextResponse.json(templatesData);
   }
 }
 
