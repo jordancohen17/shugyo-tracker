@@ -1,7 +1,7 @@
 // src/components/WorkoutLogger.tsx
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StrengthExercise, EmsTraining, StrengthSet } from '@/types';
 import { Plus, Trash2, Dumbbell, Zap, History, RotateCcw, ChevronDown } from 'lucide-react';
 
@@ -24,49 +24,6 @@ const COMMON_MOVEMENTS = [
   'L-Sit Hold'
 ];
 
-const TEMPLATE_WORKOUTS: Record<string, StrengthExercise[]> = {
-  'Day 1': [
-    { name: 'Push Press', log: [{ weight: 135, sets: 10, reps: 3, isAmrap: false }] },
-    { name: 'Zercher Squat', log: [{ weight: 135, sets: 10, reps: 3, isAmrap: false }] },
-    { name: 'Weighted Pull-up', log: [{ weight: 45, sets: 5, reps: 3, isAmrap: false }] },
-    { name: 'Weighted Dip', log: [{ weight: 36, sets: 5, reps: 3, isAmrap: false }] },
-    { name: 'Hanging Leg Raise', log: [{ weight: 0, sets: 5, reps: 0, isAmrap: true }] },
-    { name: 'Lat Raise', log: [{ weight: 0, sets: 5, reps: 10, isAmrap: false }] },
-  ],
-  'Day 2': [
-    { name: 'AMRAP 20 mins (Pull-ups, Dips, Ab Wheel)', log: [{ weight: 0, sets: 1, reps: 1, isAmrap: true }] },
-    { name: 'Hammer Curls', log: [{ weight: 0, sets: 5, reps: 3, isAmrap: false }] },
-    { name: 'Skullcrushers', log: [{ weight: 0, sets: 5, reps: 3, isAmrap: false }] },
-    { name: 'QL Extensions', log: [{ weight: 0, sets: 3, reps: 10, isAmrap: false }] },
-    { name: 'SL Back Extensions', log: [{ weight: 0, sets: 3, reps: 10, isAmrap: false }] },
-    { name: 'Seated Good Morning', log: [{ weight: 0, sets: 3, reps: 10, isAmrap: false }] },
-  ],
-  'Day 3': [
-    { name: 'Power Clean', log: [{ weight: 135, sets: 6, reps: 5, isAmrap: false }] },
-    { name: 'Incline Bench Press', log: [{ weight: 135, sets: 6, reps: 5, isAmrap: false }] },
-    { name: 'Bench Press', log: [{ weight: 185, sets: 6, reps: 1, isAmrap: false }] },
-    { name: 'Flat Bench Press', log: [{ weight: 0, sets: 2, reps: 0, isAmrap: true }] },
-    { name: 'Back Squat (2-min AMRAP)', log: [{ weight: 0, sets: 1, reps: 0, isAmrap: true }] },
-    { name: 'Hanging Leg Raise', log: [{ weight: 0, sets: 5, reps: 0, isAmrap: true }] },
-    { name: 'Lat Raise', log: [{ weight: 0, sets: 5, reps: 10, isAmrap: false }] },
-  ],
-  'Day 4': [
-    { name: 'Skullcrushers', log: [{ weight: 0, sets: 10, reps: 10, isAmrap: false }] },
-    { name: 'Reverse Curls', log: [{ weight: 0, sets: 10, reps: 10, isAmrap: false }] },
-    { name: 'QL Extensions', log: [{ weight: 0, sets: 3, reps: 10, isAmrap: false }] },
-    { name: 'SL Back Extensions', log: [{ weight: 0, sets: 3, reps: 10, isAmrap: false }] },
-    { name: 'Seated Good Morning', log: [{ weight: 0, sets: 3, reps: 10, isAmrap: false }] },
-    { name: 'Ab Wheel', log: [{ weight: 0, sets: 5, reps: 0, isAmrap: true }] },
-  ],
-  'Day 5': [
-    { name: 'Zercher Squat', log: [{ weight: 135, sets: 10, reps: 3, isAmrap: false }] },
-    { name: 'Strict Military Press', log: [{ weight: 0, sets: 4, reps: 8, isAmrap: false }] },
-    { name: 'Pendlay Row', log: [{ weight: 0, sets: 4, reps: 8, isAmrap: false }] },
-    { name: 'Straps Shrugs', log: [{ weight: 0, sets: 8, reps: 3, isAmrap: false }] },
-    { name: 'Hanging Leg Raise', log: [{ weight: 0, sets: 5, reps: 0, isAmrap: true }] },
-  ],
-};
-
 export default function WorkoutLogger({
   strength,
   ems,
@@ -76,9 +33,186 @@ export default function WorkoutLogger({
   isCollapsed = false,
   onToggleCollapse,
 }: WorkoutLoggerProps) {
+  const [templates, setTemplates] = useState<Record<string, StrengthExercise[]>>({});
+  const [loadingTemplates, setLoadingTemplates] = useState(true);
+  const [isEditingTemplates, setIsEditingTemplates] = useState(false);
+  const [editableTemplates, setEditableTemplates] = useState<Record<string, StrengthExercise[]>>({});
+  const [selectedTemplateName, setSelectedTemplateName] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load templates from API
+  useEffect(() => {
+    async function fetchTemplates() {
+      try {
+        const res = await fetch('/api/templates');
+        if (res.ok) {
+          const data = await res.json();
+          setTemplates(data);
+        }
+      } catch (err) {
+        console.error('Failed to load templates:', err);
+      } finally {
+        setLoadingTemplates(false);
+      }
+    }
+    fetchTemplates();
+  }, []);
+
+  // Sync editable templates when modal opens
+  useEffect(() => {
+    if (isEditingTemplates) {
+      const clone = JSON.parse(JSON.stringify(templates));
+      setEditableTemplates(clone);
+      const keys = Object.keys(clone);
+      if (keys.length > 0 && !keys.includes(selectedTemplateName)) {
+        setSelectedTemplateName(keys[0]);
+      } else if (keys.length > 0) {
+        setSelectedTemplateName(selectedTemplateName);
+      } else {
+        setSelectedTemplateName('');
+      }
+    }
+  }, [isEditingTemplates, templates]);
+
+  const handleCreateTemplate = () => {
+    const newName = prompt('Enter a name for the new template (e.g. Day 6):');
+    if (!newName) return;
+    if (editableTemplates[newName]) {
+      alert('A template with that name already exists!');
+      return;
+    }
+    setEditableTemplates(prev => ({
+      ...prev,
+      [newName]: [
+        { name: 'New Exercise', log: [{ weight: 0, sets: 3, reps: 10, isAmrap: false }] }
+      ]
+    }));
+    setSelectedTemplateName(newName);
+  };
+
+  const handleDeleteTemplate = () => {
+    if (!selectedTemplateName) return;
+    if (!confirm(`Are you sure you want to delete "${selectedTemplateName}"?`)) return;
+    
+    setEditableTemplates(prev => {
+      const next = { ...prev };
+      delete next[selectedTemplateName];
+      return next;
+    });
+
+    const remainingKeys = Object.keys(editableTemplates).filter(k => k !== selectedTemplateName);
+    if (remainingKeys.length > 0) {
+      setSelectedTemplateName(remainingKeys[0]);
+    } else {
+      setSelectedTemplateName('');
+    }
+  };
+
+  const handleAddExerciseToTemplate = () => {
+    if (!selectedTemplateName) return;
+    setEditableTemplates(prev => {
+      const current = prev[selectedTemplateName] || [];
+      return {
+        ...prev,
+        [selectedTemplateName]: [
+          ...current,
+          { name: '', log: [{ weight: 0, sets: 3, reps: 10, isAmrap: false }] }
+        ]
+      };
+    });
+  };
+
+  const handleRemoveExerciseFromTemplate = (exIdx: number) => {
+    if (!selectedTemplateName) return;
+    setEditableTemplates(prev => {
+      const current = [...(prev[selectedTemplateName] || [])];
+      current.splice(exIdx, 1);
+      return {
+        ...prev,
+        [selectedTemplateName]: current
+      };
+    });
+  };
+
+  const handleUpdateExerciseNameInTemplate = (exIdx: number, newName: string) => {
+    if (!selectedTemplateName) return;
+    setEditableTemplates(prev => {
+      const current = [...(prev[selectedTemplateName] || [])];
+      current[exIdx] = { ...current[exIdx], name: newName };
+      return {
+        ...prev,
+        [selectedTemplateName]: current
+      };
+    });
+  };
+
+  const handleUpdateSetInTemplate = (exIdx: number, setIdx: number, key: string, value: any) => {
+    if (!selectedTemplateName) return;
+    setEditableTemplates(prev => {
+      const current = [...(prev[selectedTemplateName] || [])];
+      const log = [...current[exIdx].log];
+      log[setIdx] = { ...log[setIdx], [key]: value };
+      current[exIdx] = { ...current[exIdx], log };
+      return {
+        ...prev,
+        [selectedTemplateName]: current
+      };
+    });
+  };
+
+  const handleAddSetToTemplate = (exIdx: number) => {
+    if (!selectedTemplateName) return;
+    setEditableTemplates(prev => {
+      const current = [...(prev[selectedTemplateName] || [])];
+      const log = [...current[exIdx].log];
+      const lastSet = log[log.length - 1] || { weight: 0, sets: 3, reps: 10, isAmrap: false };
+      log.push({ ...lastSet });
+      current[exIdx] = { ...current[exIdx], log };
+      return {
+        ...prev,
+        [selectedTemplateName]: current
+      };
+    });
+  };
+
+  const handleRemoveSetFromTemplate = (exIdx: number, setIdx: number) => {
+    if (!selectedTemplateName) return;
+    setEditableTemplates(prev => {
+      const current = [...(prev[selectedTemplateName] || [])];
+      const log = [...current[exIdx].log];
+      log.splice(setIdx, 1);
+      current[exIdx] = { ...current[exIdx], log };
+      return {
+        ...prev,
+        [selectedTemplateName]: current
+      };
+    });
+  };
+
+  const handleSaveTemplates = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editableTemplates)
+      });
+      if (res.ok) {
+        setTemplates(editableTemplates);
+        setIsEditingTemplates(false);
+      } else {
+        alert('Failed to save templates');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error saving templates');
+    } finally {
+      setIsSaving(false);
+    }
+  };
   
   const applyTemplate = (dayName: string) => {
-    const preset = TEMPLATE_WORKOUTS[dayName];
+    const preset = templates[dayName];
     if (preset) {
       const templateCopy: StrengthExercise[] = JSON.parse(JSON.stringify(preset));
       if (historyMap) {
@@ -103,8 +237,8 @@ export default function WorkoutLogger({
   const findTemplateDefault = (exerciseName: string): StrengthSet[] | null => {
     if (!exerciseName) return null;
     const key = exerciseName.trim().toLowerCase();
-    for (const dayName of Object.keys(TEMPLATE_WORKOUTS)) {
-      const matchedEx = TEMPLATE_WORKOUTS[dayName].find(
+    for (const dayName of Object.keys(templates)) {
+      const matchedEx = templates[dayName].find(
         (e) => e.name.trim().toLowerCase() === key
       );
       if (matchedEx) return matchedEx.log;
@@ -318,9 +452,9 @@ export default function WorkoutLogger({
         </div>
 
         {/* Load Preset Template */}
-        <div className="flex flex-wrap gap-2 mb-4 bg-tatami/20 border border-shibu/30 p-3 rounded-sm">
+        <div className="flex flex-wrap gap-2 mb-4 bg-tatami/20 border border-shibu/30 p-3 rounded-sm items-center">
           <span className="text-[10px] text-stone uppercase tracking-wider self-center mr-1 font-mono">Load Template:</span>
-          {Object.keys(TEMPLATE_WORKOUTS).map((dayName) => (
+          {Object.keys(templates).map((dayName) => (
             <button
               key={dayName}
               type="button"
@@ -330,6 +464,13 @@ export default function WorkoutLogger({
               {dayName}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setIsEditingTemplates(true)}
+            className="text-[10px] bg-tatami border border-stone/30 hover:border-aizome px-3 py-1.5 text-aizome transition-all duration-200 uppercase font-semibold tracking-wider font-mono shadow-sm ml-auto"
+          >
+            Manage Templates
+          </button>
         </div>
 
         {/* Quick select buttons */}
@@ -537,6 +678,188 @@ export default function WorkoutLogger({
             ))}
           </div>
         )}
+      </div>
+      </div>
+
+      {/* Template Editor Modal */}
+      {isEditingTemplates && (
+        <div className="fixed inset-0 bg-sumi/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-washi border border-sumi/20 max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 relative shadow-lg">
+            {/* Shoji Corner Decorators */}
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-sumi/20"></div>
+            <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-sumi/20"></div>
+            <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-sumi/20"></div>
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-sumi/20"></div>
+
+            <div className="flex justify-between items-center border-b border-shibu pb-3 mb-4">
+              <h3 className="text-lg font-serif font-light text-sumi">Manage Templates</h3>
+              <button 
+                onClick={() => setIsEditingTemplates(false)} 
+                className="text-stone hover:text-sumi text-xs font-mono"
+              >
+                [Close]
+              </button>
+            </div>
+
+            {/* Select template */}
+            <div className="flex flex-col sm:flex-row gap-4 sm:items-end mb-6">
+              <div className="flex-1">
+                <label className="block text-[10px] uppercase font-mono tracking-wider text-stone mb-1">Select Template</label>
+                <select 
+                  value={selectedTemplateName} 
+                  onChange={(e) => setSelectedTemplateName(e.target.value)}
+                  className="w-full bg-washi border border-shibu px-3 py-2 text-xs outline-none focus:border-aizome text-sumi"
+                >
+                  <option value="" disabled>-- Choose a template --</option>
+                  {Object.keys(editableTemplates).map((name) => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  type="button" 
+                  onClick={handleCreateTemplate}
+                  className="text-[10px] font-mono uppercase tracking-wider border border-aizome/30 px-3 py-2 text-aizome hover:bg-aizome hover:text-washi transition-all duration-200"
+                >
+                  Create New
+                </button>
+                {selectedTemplateName && (
+                  <button 
+                    type="button" 
+                    onClick={handleDeleteTemplate}
+                    className="text-[10px] font-mono uppercase tracking-wider border border-red-300 px-3 py-2 text-red-600 hover:bg-red-50 transition-all duration-200"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Edit exercise lists for selected template */}
+            {selectedTemplateName && editableTemplates[selectedTemplateName] ? (
+              <div className="space-y-4 mb-6">
+                <h4 className="text-xs uppercase font-mono tracking-wider text-stone border-b border-shibu/30 pb-1">
+                  Exercises for {selectedTemplateName}
+                </h4>
+
+                {editableTemplates[selectedTemplateName].map((ex, exIdx) => (
+                  <div key={exIdx} className="border border-shibu/40 p-4 bg-tatami/20 relative rounded-sm">
+                    <button 
+                      type="button" 
+                      onClick={() => handleRemoveExerciseFromTemplate(exIdx)}
+                      className="absolute top-2 right-2 text-[10px] font-mono text-stone hover:text-red-500"
+                    >
+                      [Remove]
+                    </button>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label className="block text-[9px] uppercase font-mono tracking-wider text-stone mb-1">Exercise Name</label>
+                        <input 
+                          type="text" 
+                          value={ex.name} 
+                          onChange={(e) => handleUpdateExerciseNameInTemplate(exIdx, e.target.value)}
+                          placeholder="e.g. Zercher Squat"
+                          className="w-full bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome text-sumi font-sans"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Sets config */}
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-4 gap-2 text-[9px] uppercase tracking-wider text-stone font-mono">
+                        <div>Weight</div>
+                        <div>Sets</div>
+                        <div>Reps</div>
+                        <div className="text-center">AMRAP</div>
+                      </div>
+                      {ex.log.map((set, setIdx) => (
+                        <div key={setIdx} className="grid grid-cols-4 gap-2 items-center">
+                          <input 
+                            type="number" 
+                            value={set.weight || ''} 
+                            onChange={(e) => handleUpdateSetInTemplate(exIdx, setIdx, 'weight', parseFloat(e.target.value) || 0)}
+                            placeholder="0"
+                            className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome text-sumi font-mono"
+                          />
+                          <input 
+                            type="number" 
+                            value={set.sets || ''} 
+                            onChange={(e) => handleUpdateSetInTemplate(exIdx, setIdx, 'sets', parseInt(e.target.value) || 0)}
+                            placeholder="0"
+                            className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome text-sumi font-mono"
+                          />
+                          <input 
+                            type="number" 
+                            value={set.reps || ''} 
+                            onChange={(e) => handleUpdateSetInTemplate(exIdx, setIdx, 'reps', parseInt(e.target.value) || 0)}
+                            placeholder="0"
+                            className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome text-sumi font-mono"
+                          />
+                          <div className="flex justify-center items-center gap-2">
+                            <input 
+                              type="checkbox" 
+                              checked={set.isAmrap} 
+                              onChange={(e) => handleUpdateSetInTemplate(exIdx, setIdx, 'isAmrap', e.target.checked)}
+                              className="accent-aizome"
+                            />
+                            {ex.log.length > 1 && (
+                              <button 
+                                type="button" 
+                                onClick={() => handleRemoveSetFromTemplate(exIdx, setIdx)}
+                                className="text-stone hover:text-red-500 font-mono text-xs"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => handleAddSetToTemplate(exIdx)}
+                      className="mt-2 text-[9px] uppercase tracking-widest text-aizome hover:underline"
+                    >
+                      + Add Set Config
+                    </button>
+                  </div>
+                ))}
+
+                <button 
+                  type="button" 
+                  onClick={handleAddExerciseToTemplate}
+                  className="w-full border border-dashed border-shibu/65 py-2 text-center text-xs text-stone hover:text-aizome hover:border-aizome transition-colors"
+                >
+                  + Add Exercise to Template
+                </button>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-stone text-xs italic font-serif">
+                Select a template from the list above or create a new one to begin editing.
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex justify-end gap-3 border-t border-shibu pt-4 mt-6">
+              <button 
+                onClick={() => setIsEditingTemplates(false)}
+                className="text-xs border border-shibu px-4 py-2 hover:bg-tatami/20 transition-all duration-200"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveTemplates}
+                disabled={isSaving}
+                className="text-xs bg-aizome text-washi px-4 py-2 hover:bg-aizome/90 transition-all duration-200 disabled:opacity-50"
+              >
+                {isSaving ? 'Saving...' : 'Save Templates'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
       </div>
     </div>
