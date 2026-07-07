@@ -47,8 +47,7 @@ function formatWorkoutCell(workout: DailyLogEntry['workout']): string {
   if (workout.ems?.isEmsDay) {
     const emsInfo = [
       `Program: ${workout.ems.programType || 'None'}`,
-      `Core Intensity: ${workout.ems.coreIntensity ?? 0}/10`,
-      `Upper: ${workout.ems.upperIntensity ?? 0}/10, Lower: ${workout.ems.lowerIntensity ?? 0}/10`
+      `Intensity: ${workout.ems.intensity ?? 150}`
     ].join('\n');
     lines.push('[Katalyst EMS Suit]\n' + emsInfo);
   }

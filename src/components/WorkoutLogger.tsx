@@ -371,13 +371,13 @@ export default function WorkoutLogger({
             <div>
               <label className="block text-[10px] uppercase tracking-wider text-stone mb-2 font-mono">Program Type</label>
               <div className="flex flex-wrap gap-1.5">
-                {['Strength', 'Power', 'Cardio', 'Metabolic', 'None'].map((prog) => {
-                  const isSelected = (ems.programType || 'None') === prog;
+                {['Strength', 'Power'].map((prog) => {
+                  const isSelected = ems.programType === prog;
                   return (
                     <button
                       key={prog}
                       type="button"
-                      onClick={() => updateEmsField('programType', prog === 'None' ? '' : prog)}
+                      onClick={() => updateEmsField('programType', isSelected ? '' : prog)}
                       className={`text-[10px] px-3 py-1.5 font-mono border transition-all duration-200 uppercase font-semibold tracking-wider ${
                         isSelected
                           ? 'bg-aizome text-washi border-aizome'
@@ -391,48 +391,18 @@ export default function WorkoutLogger({
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone mb-1 font-mono">
-                  Core Intensity: {ems.coreIntensity ?? 0}/10
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  value={ems.coreIntensity ?? 0}
-                  onChange={(e) => updateEmsField('coreIntensity', parseInt(e.target.value))}
-                  className="w-full accent-aizome bg-shibu h-1 rounded"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone mb-1 font-mono">
-                  Upper Intensity: {ems.upperIntensity ?? 0}/10
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  value={ems.upperIntensity ?? 0}
-                  onChange={(e) => updateEmsField('upperIntensity', parseInt(e.target.value))}
-                  className="w-full accent-aizome bg-shibu h-1 rounded"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone mb-1 font-mono">
-                  Lower Intensity: {ems.lowerIntensity ?? 0}/10
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  value={ems.lowerIntensity ?? 0}
-                  onChange={(e) => updateEmsField('lowerIntensity', parseInt(e.target.value))}
-                  className="w-full accent-aizome bg-shibu h-1 rounded"
-                />
-              </div>
+            <div className="max-w-sm">
+              <label className="block text-xs uppercase tracking-wider text-stone mb-1 font-mono">
+                Intensity: {ems.intensity ?? 150}
+              </label>
+              <input
+                type="range"
+                min="150"
+                max="480"
+                value={ems.intensity ?? 150}
+                onChange={(e) => updateEmsField('intensity', parseInt(e.target.value))}
+                className="w-full accent-aizome bg-shibu h-1 rounded"
+              />
             </div>
           </div>
         )}

@@ -74,7 +74,7 @@ export default function RecoveryLogger({ recovery, onChange, isCollapsed = false
       <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[1000px] opacity-100'}`}>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Infrared Sauna Section */}
+        {/* Sauna Section */}
         <div className="p-4 bg-tatami/40 border border-shibu rounded-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4 border-b border-shibu pb-2">
@@ -86,7 +86,7 @@ export default function RecoveryLogger({ recovery, onChange, isCollapsed = false
                   className="accent-aizome"
                 />
                 <Flame className="w-4 h-4 text-orange-500" />
-                Infrared Sauna
+                Sauna
               </label>
             </div>
 

@@ -53,8 +53,8 @@ const DEFAULT_MOBILITY_CATEGORIES = [
 ];
 
 const DEFAULT_RECOVERY: RecoveryHabits = {
-  sauna: { completed: false, temperatureFahrenheit: 150, durationMinutes: 30 },
-  coldPlunge: { completed: false, temperatureFahrenheit: 45, durationMinutes: 3 },
+  sauna: { completed: false, temperatureFahrenheit: 180, durationMinutes: 20 },
+  coldPlunge: { completed: false, temperatureFahrenheit: 42, durationMinutes: 3 },
   sleepHygiene: {
     noScreensBeforeBed: false,
     magnesiumTaken: false,
@@ -74,10 +74,8 @@ const DEFAULT_STRESSORS: LifestyleStressors = {
 
 const DEFAULT_EMS: EmsTraining = {
   isEmsDay: false,
-  programType: 'None',
-  coreIntensity: 0,
-  upperIntensity: 0,
-  lowerIntensity: 0,
+  programType: '',
+  intensity: 150,
 };
 
 export default function Home() {

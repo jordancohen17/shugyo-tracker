@@ -21,10 +21,11 @@ export interface StrengthExercise {
 
 export interface EmsTraining {
   isEmsDay: boolean;
-  programType?: 'Strength' | 'Power' | 'Cardio' | 'Metabolic' | 'None';
-  coreIntensity?: number;  // scale 1-10
-  upperIntensity?: number; // scale 1-10
-  lowerIntensity?: number; // scale 1-10
+  programType?: 'Strength' | 'Power' | 'None' | '';
+  intensity?: number;
+  coreIntensity?: number;  // scale 1-10 (legacy)
+  upperIntensity?: number; // scale 1-10 (legacy)
+  lowerIntensity?: number; // scale 1-10 (legacy)
 }
 
 export interface MobilityExercise {
