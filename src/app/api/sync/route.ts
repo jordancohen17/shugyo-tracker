@@ -43,8 +43,8 @@ export async function GET(request: Request) {
         workout: null, // Just syncing morning status; workout details will sync via the logger route
         grappling: null,
         recovery: {
-          sauna: { completed: false },
-          coldPlunge: { completed: false },
+          sauna: { completed: false, temperatureFahrenheit: 180, durationMinutes: 20 },
+          coldPlunge: { completed: false, temperatureFahrenheit: 42, durationMinutes: 3 },
           sleepHygiene: { noScreensBeforeBed: false, magnesiumTaken: false, coolRoomTemp: false },
         },
         stressors: {

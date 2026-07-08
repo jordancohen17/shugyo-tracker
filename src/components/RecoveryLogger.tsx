@@ -15,22 +15,32 @@ interface RecoveryLoggerProps {
 export default function RecoveryLogger({ recovery, onChange, isCollapsed = false, onToggleCollapse }: RecoveryLoggerProps) {
   
   const updateSaunaField = (field: 'completed' | 'temperatureFahrenheit' | 'durationMinutes', value: any) => {
+    const nextSauna = {
+      ...recovery.sauna,
+      [field]: value,
+    };
+    if (field === 'completed' && value === true) {
+      if (!nextSauna.temperatureFahrenheit) nextSauna.temperatureFahrenheit = 180;
+      if (!nextSauna.durationMinutes) nextSauna.durationMinutes = 20;
+    }
     onChange({
       ...recovery,
-      sauna: {
-        ...recovery.sauna,
-        [field]: value,
-      },
+      sauna: nextSauna,
     });
   };
 
   const updateColdPlungeField = (field: 'completed' | 'temperatureFahrenheit' | 'durationMinutes', value: any) => {
+    const nextColdPlunge = {
+      ...recovery.coldPlunge,
+      [field]: value,
+    };
+    if (field === 'completed' && value === true) {
+      if (!nextColdPlunge.temperatureFahrenheit) nextColdPlunge.temperatureFahrenheit = 42;
+      if (!nextColdPlunge.durationMinutes) nextColdPlunge.durationMinutes = 3;
+    }
     onChange({
       ...recovery,
-      coldPlunge: {
-        ...recovery.coldPlunge,
-        [field]: value,
-      },
+      coldPlunge: nextColdPlunge,
     });
   };
 
@@ -100,7 +110,7 @@ export default function RecoveryLogger({ recovery, onChange, isCollapsed = false
                     type="number"
                     value={recovery.sauna.temperatureFahrenheit || ''}
                     onChange={(e) => updateSaunaField('temperatureFahrenheit', parseInt(e.target.value) || 0)}
-                    placeholder="e.g. 150"
+                    placeholder="e.g. 180"
                     className="w-full bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome"
                   />
                 </div>
@@ -112,7 +122,7 @@ export default function RecoveryLogger({ recovery, onChange, isCollapsed = false
                     type="number"
                     value={recovery.sauna.durationMinutes || ''}
                     onChange={(e) => updateSaunaField('durationMinutes', parseInt(e.target.value) || 0)}
-                    placeholder="e.g. 30"
+                    placeholder="e.g. 20"
                     className="w-full bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome"
                   />
                 </div>
@@ -150,7 +160,7 @@ export default function RecoveryLogger({ recovery, onChange, isCollapsed = false
                     type="number"
                     value={recovery.coldPlunge.temperatureFahrenheit || ''}
                     onChange={(e) => updateColdPlungeField('temperatureFahrenheit', parseInt(e.target.value) || 0)}
-                    placeholder="e.g. 45"
+                    placeholder="e.g. 42"
                     className="w-full bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome"
                   />
                 </div>

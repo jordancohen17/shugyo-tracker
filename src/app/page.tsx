@@ -215,7 +215,25 @@ export default function Home() {
           resetWorkoutFields();
         }
         setGrappling(parsed.grappling);
-        setRecovery(parsed.recovery);
+        // Merge with defaults to ensure missing properties like temperatureFahrenheit/durationMinutes are populated
+        const mergedRecovery: RecoveryHabits = {
+          sauna: {
+            completed: parsed.recovery?.sauna?.completed ?? false,
+            temperatureFahrenheit: parsed.recovery?.sauna?.temperatureFahrenheit !== undefined ? parsed.recovery.sauna.temperatureFahrenheit : DEFAULT_RECOVERY.sauna.temperatureFahrenheit,
+            durationMinutes: parsed.recovery?.sauna?.durationMinutes !== undefined ? parsed.recovery.sauna.durationMinutes : DEFAULT_RECOVERY.sauna.durationMinutes,
+          },
+          coldPlunge: {
+            completed: parsed.recovery?.coldPlunge?.completed ?? false,
+            temperatureFahrenheit: parsed.recovery?.coldPlunge?.temperatureFahrenheit !== undefined ? parsed.recovery.coldPlunge.temperatureFahrenheit : DEFAULT_RECOVERY.coldPlunge.temperatureFahrenheit,
+            durationMinutes: parsed.recovery?.coldPlunge?.durationMinutes !== undefined ? parsed.recovery.coldPlunge.durationMinutes : DEFAULT_RECOVERY.coldPlunge.durationMinutes,
+          },
+          sleepHygiene: {
+            noScreensBeforeBed: parsed.recovery?.sleepHygiene?.noScreensBeforeBed ?? false,
+            magnesiumTaken: parsed.recovery?.sleepHygiene?.magnesiumTaken ?? false,
+            coolRoomTemp: parsed.recovery?.sleepHygiene?.coolRoomTemp ?? false,
+          },
+        };
+        setRecovery(mergedRecovery);
         setStressors(parsed.stressors || DEFAULT_STRESSORS);
         return;
       } catch (e) {

@@ -3,6 +3,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import templatesData from '@/data/workout-templates.json';
 
+export const dynamic = 'force-dynamic';
+
 const filePath = path.join(process.cwd(), 'src/data/workout-templates.json');
 
 export async function GET() {
