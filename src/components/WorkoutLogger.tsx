@@ -412,13 +412,15 @@ export default function WorkoutLogger({
       <div>
         <div className="flex justify-between items-center mb-4">
           <span className="text-xs uppercase tracking-wider text-stone font-mono">Strength Exercises</span>
-          <button
-            type="button"
-            onClick={() => addExercise('')}
-            className="flex items-center gap-1 text-xs text-aizome border border-aizome/20 px-2.5 py-1 hover:bg-aizome hover:text-washi transition-all duration-200"
-          >
-            <Plus className="w-3.5 h-3.5" /> Add Exercise
-          </button>
+          {strength.length === 0 && (
+            <button
+              type="button"
+              onClick={() => addExercise('')}
+              className="flex items-center gap-1 text-xs text-aizome border border-aizome/20 px-2.5 py-1 hover:bg-aizome hover:text-washi transition-all duration-200"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Exercise
+            </button>
+          )}
         </div>
 
         {/* Load Preset Template */}
@@ -646,6 +648,15 @@ export default function WorkoutLogger({
                 </button>
               </div>
             ))}
+            <div className="flex justify-start pt-2">
+              <button
+                type="button"
+                onClick={() => addExercise('')}
+                className="flex items-center gap-1 text-xs text-aizome border border-aizome/20 px-2.5 py-1 hover:bg-aizome hover:text-washi transition-all duration-200"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Exercise
+              </button>
+            </div>
           </div>
         )}
       </div>
