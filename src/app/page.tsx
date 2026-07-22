@@ -2,13 +2,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DailyLogEntry, OuraMetrics, StrengthExercise, EmsTraining, MobilityLog, GrapplingLog, RecoveryHabits, LifestyleStressors } from '@/types';
+import { DailyLogEntry, OuraMetrics, StrengthExercise, EmsTraining, MobilityLog, GrapplingLog, RecoveryHabits, LifestyleStressors, DailyHabits } from '@/types';
 import AutoregulationCard from '@/components/AutoregulationCard';
 import WorkoutLogger from '@/components/WorkoutLogger';
 import MobilityLogger from '@/components/MobilityLogger';
 import GrapplingLogger from '@/components/GrapplingLogger';
 import RecoveryLogger from '@/components/RecoveryLogger';
 import StressorLogger from '@/components/StressorLogger';
+import DailyHabitsLogger from '@/components/DailyHabitsLogger';
 import { Calendar, Save, CheckCircle, AlertTriangle, Sunrise, Dumbbell, Sparkles, History } from 'lucide-react';
 import { buildExerciseHistoryMap } from '@/lib/workout-parser';
 
@@ -78,6 +79,13 @@ const DEFAULT_EMS: EmsTraining = {
   intensity: 150,
 };
 
+const DEFAULT_DAILY_HABITS: DailyHabits = {
+  hangSeconds: 0,
+  squatSeconds: 0,
+  practiceInstrument: false,
+  mobilityWork: false,
+};
+
 export default function Home() {
   const [day, setDay] = useState<string>('');
   const [localStorageLogs, setLocalStorageLogs] = useState<Record<string, any>>({});
@@ -91,6 +99,7 @@ export default function Home() {
     mobility: false,
     recovery: false,
     stressors: false,
+    dailyHabits: false,
   });
 
   const toggleCardCollapse = (key: string) => {
@@ -114,6 +123,7 @@ export default function Home() {
   const [grappling, setGrappling] = useState<GrapplingLog | null>(null);
   const [recovery, setRecovery] = useState<RecoveryHabits>(DEFAULT_RECOVERY);
   const [stressors, setStressors] = useState<LifestyleStressors>(DEFAULT_STRESSORS);
+  const [dailyHabits, setDailyHabits] = useState<DailyHabits>(DEFAULT_DAILY_HABITS);
 
   // Sync / Save statuses
   const [isSaving, setIsSaving] = useState(false);
@@ -235,6 +245,12 @@ export default function Home() {
         };
         setRecovery(mergedRecovery);
         setStressors(parsed.stressors || DEFAULT_STRESSORS);
+        setDailyHabits({
+          hangSeconds: parsed.dailyHabits?.hangSeconds ?? 0,
+          squatSeconds: parsed.dailyHabits?.squatSeconds ?? 0,
+          practiceInstrument: parsed.dailyHabits?.practiceInstrument ?? false,
+          mobilityWork: parsed.dailyHabits?.mobilityWork ?? false,
+        });
         return;
       } catch (e) {
         console.error('Error loading cache', e);
@@ -248,6 +264,7 @@ export default function Home() {
     setGrappling(null);
     setRecovery(DEFAULT_RECOVERY);
     setStressors(DEFAULT_STRESSORS);
+    setDailyHabits(DEFAULT_DAILY_HABITS);
   }, [day]);
 
   const resetWorkoutFields = () => {
@@ -286,7 +303,28 @@ export default function Home() {
       recovery,
       stressors,
       llmRecommendation: currentRec || undefined,
+      dailyHabits,
     };
+  };
+
+  const handleDailyHabitsChange = (newHabits: DailyHabits) => {
+    setDailyHabits(newHabits);
+    const updatedEntry: DailyLogEntry = {
+      day,
+      oura,
+      workout: {
+        strength,
+        ems,
+        mobility,
+      },
+      grappling,
+      recovery,
+      stressors,
+      llmRecommendation: recommendation || undefined,
+      dailyHabits: newHabits,
+    };
+    localStorage.setItem(`shugyo_log_${day}`, JSON.stringify(updatedEntry));
+    loadLocalStorageLogs();
   };
 
   // Saves the completed daily entry to Google Sheets
@@ -376,6 +414,11 @@ export default function Home() {
               recommendation={recommendation}
               onSync={handleOuraSync}
             />
+            <DailyHabitsLogger
+              day={day}
+              dailyHabits={dailyHabits}
+              onChange={handleDailyHabitsChange}
+            />
           </section>
 
           {/* Right Hand: Workouts, Mobility, Grappling, and Recovery */}
@@ -409,14 +452,23 @@ export default function Home() {
         {/* Mobile Tab-Based Layout (hidden on desktop) */}
         <div className="block lg:hidden w-full space-y-6">
           {activeTab === 'morning' && (
-            <AutoregulationCard
-              day={day}
-              oura={oura}
-              recommendation={recommendation}
-              onSync={handleOuraSync}
-              isCollapsed={collapsedCards.autoreg}
-              onToggleCollapse={() => toggleCardCollapse('autoreg')}
-            />
+            <>
+              <AutoregulationCard
+                day={day}
+                oura={oura}
+                recommendation={recommendation}
+                onSync={handleOuraSync}
+                isCollapsed={collapsedCards.autoreg}
+                onToggleCollapse={() => toggleCardCollapse('autoreg')}
+              />
+              <DailyHabitsLogger
+                day={day}
+                dailyHabits={dailyHabits}
+                onChange={handleDailyHabitsChange}
+                isCollapsed={collapsedCards.dailyHabits}
+                onToggleCollapse={() => toggleCardCollapse('dailyHabits')}
+              />
+            </>
           )}
 
           {activeTab === 'training' && (
@@ -492,6 +544,7 @@ export default function Home() {
                         <p><strong className="text-sumi font-semibold">Oura:</strong> {log.oura || '—'}</p>
                         <p className="whitespace-pre-line"><strong className="text-sumi font-semibold">Workout:</strong> {log.workout || '—'}</p>
                         <p><strong className="text-sumi font-semibold">Stressors:</strong> {log.stressors || 'None'}</p>
+                        <p><strong className="text-sumi font-semibold">Daily Habits:</strong> {log.dailyHabits || 'None'}</p>
                       </div>
                     </div>
                   ))}
@@ -543,6 +596,7 @@ export default function Home() {
                       <th className="py-3 px-4 font-semibold">Logged Activity (Strength / EMS / Mobility)</th>
                       <th className="py-3 px-4 w-32 font-semibold">BJJ Intensity</th>
                       <th className="py-3 px-4 w-48 font-semibold">Stressors</th>
+                      <th className="py-3 px-4 w-48 font-semibold">Daily Habits</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -562,6 +616,9 @@ export default function Home() {
                         </td>
                         <td className="py-3.5 px-4 text-stone align-top whitespace-pre-line leading-relaxed">
                           {log.stressors || '—'}
+                        </td>
+                        <td className="py-3.5 px-4 text-stone align-top whitespace-pre-line leading-relaxed">
+                          {log.dailyHabits || '—'}
                         </td>
                       </tr>
                     ))}

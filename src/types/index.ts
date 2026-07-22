@@ -78,6 +78,13 @@ export interface LifestyleStressors {
   subjectiveStress: 1 | 2 | 3 | 4 | 5; // 1 = peaceful, 5 = high stress
 }
 
+export interface DailyHabits {
+  hangSeconds: number;
+  squatSeconds: number;
+  practiceInstrument: boolean;
+  mobilityWork: boolean;
+}
+
 // The main aggregated record representing a single day's log entry
 export interface DailyLogEntry {
   day: string; // ISO date format (YYYY-MM-DD)
@@ -91,4 +98,6 @@ export interface DailyLogEntry {
   recovery: RecoveryHabits;
   stressors?: LifestyleStressors; // Stressors that degrade recovery/readiness
   llmRecommendation?: string; // Cache the morning autoregulation recommendation
+  dailyHabits?: DailyHabits; // Track daily habits
 }
+

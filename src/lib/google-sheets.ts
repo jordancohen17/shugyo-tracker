@@ -118,6 +118,35 @@ function formatStressorsCell(stressors: DailyLogEntry['stressors']): string {
   return parts.join(' | ') || 'None';
 }
 
+/**
+ * Formats the daily habits log.
+ */
+function formatDailyHabitsCell(dailyHabits: DailyLogEntry['dailyHabits']): string {
+  if (!dailyHabits) return '';
+  const parts: string[] = [];
+
+  const formatMinSec = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins}m ${secs}s`;
+  };
+
+  if (dailyHabits.hangSeconds > 0) {
+    parts.push(`Hang: ${formatMinSec(dailyHabits.hangSeconds)}`);
+  }
+  if (dailyHabits.squatSeconds > 0) {
+    parts.push(`Squat: ${formatMinSec(dailyHabits.squatSeconds)}`);
+  }
+  if (dailyHabits.practiceInstrument) {
+    parts.push('Instrument');
+  }
+  if (dailyHabits.mobilityWork) {
+    parts.push('Mobility');
+  }
+
+  return parts.join(' | ') || 'None';
+}
+
 import fs from 'fs';
 import path from 'path';
 
@@ -149,6 +178,7 @@ export async function syncLogToGoogleSheet(entry: DailyLogEntry, sheetId: string
       workout: formatWorkoutCell(entry.workout),
       grappling: formatGrapplingCell(entry.grappling),
       stressors: formatStressorsCell(entry.stressors),
+      dailyHabits: formatDailyHabitsCell(entry.dailyHabits),
       timestamp: new Date().toISOString()
     };
     
@@ -195,7 +225,7 @@ export async function syncLogToGoogleSheet(entry: DailyLogEntry, sheetId: string
     });
   }
 
-  const rangeName = `${tabName}!A:E`; // Scopes first 5 columns
+  const rangeName = `${tabName}!A:F`; // Scopes first 6 columns
 
   // Fetch all rows to locate if the Day already exists
   const response = await sheets.spreadsheets.values.get({
@@ -206,13 +236,14 @@ export async function syncLogToGoogleSheet(entry: DailyLogEntry, sheetId: string
   const rows = response.data.values || [];
   const headers = rows[0] || [];
 
-  // Row format to write: [Day, Oura Readiness, Workout, BJJ Intensity, Lifestyle Stressors]
+  // Row format to write: [Day, Oura Readiness, Workout, BJJ Intensity, Lifestyle Stressors, Daily Habits]
   const rowData = [
     entry.day,
     formatOuraCell(entry.oura),
     formatWorkoutCell(entry.workout),
     formatGrapplingCell(entry.grappling),
     formatStressorsCell(entry.stressors),
+    formatDailyHabitsCell(entry.dailyHabits),
   ];
 
   // Find index of matching day (skipping header row)
@@ -227,7 +258,7 @@ export async function syncLogToGoogleSheet(entry: DailyLogEntry, sheetId: string
     if (matchingRowIndex !== -1) {
     // Update existing row
     // Google Sheets is 1-indexed, so matchingRowIndex + 1 is the actual row number
-    const updateRange = `${tabName}!A${matchingRowIndex + 1}:E${matchingRowIndex + 1}`;
+    const updateRange = `${tabName}!A${matchingRowIndex + 1}:F${matchingRowIndex + 1}`;
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: updateRange,
@@ -241,7 +272,7 @@ export async function syncLogToGoogleSheet(entry: DailyLogEntry, sheetId: string
     // Append new row
     if (rows.length === 0) {
       // Write header row first for a clean sheet
-      const defaultHeaders = ['Day', 'Oura Readiness', 'Workout (Strength + EMS + Mobility)', 'BJJ Mat Intensity', 'Lifestyle Stressors'];
+      const defaultHeaders = ['Day', 'Oura Readiness', 'Workout (Strength + EMS + Mobility)', 'BJJ Mat Intensity', 'Lifestyle Stressors', 'Daily Habits'];
       await sheets.spreadsheets.values.append({
         spreadsheetId: sheetId,
         range: `${tabName}!A1`,
@@ -290,7 +321,7 @@ export async function fetchLogsFromGoogleSheet(sheetId: string): Promise<any[]> 
 
   try {
     const sheets = getSheetsClient();
-    const rangeName = `${tabName}!A:E`;
+    const rangeName = `${tabName}!A:F`;
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
@@ -307,6 +338,7 @@ export async function fetchLogsFromGoogleSheet(sheetId: string): Promise<any[]> 
       workout: row[2] || '',
       grappling: row[3] || '',
       stressors: row[4] || '',
+      dailyHabits: row[5] || '',
     }));
   } catch (error) {
     console.error('Error fetching logs from Google Sheets, returning empty:', error);
