@@ -1,19 +1,24 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
-import templatesData from '@/data/workout-templates.json';
+import defaultTemplatesData from '@/data/workout-templates.json';
 
 export const dynamic = 'force-dynamic';
 
 const filePath = path.join(process.cwd(), 'src/data/workout-templates.json');
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    if (searchParams.get('default') === 'true') {
+      return NextResponse.json(defaultTemplatesData);
+    }
+
     const data = await fs.readFile(filePath, 'utf8');
     return NextResponse.json(JSON.parse(data));
   } catch (error: any) {
     console.warn('FileSystem read failed, falling back to bundled templates:', error);
-    return NextResponse.json(templatesData);
+    return NextResponse.json(defaultTemplatesData);
   }
 }
 
@@ -25,11 +30,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid templates format' }, { status: 400 });
     }
 
-    // Write formatted JSON back to file
-    await fs.writeFile(filePath, JSON.stringify(body, null, 2), 'utf8');
-    return NextResponse.json({ success: true });
+    // Attempt to write formatted JSON back to file (works in local dev)
+    try {
+      await fs.writeFile(filePath, JSON.stringify(body, null, 2), 'utf8');
+    } catch (fsError: any) {
+      console.warn('FileSystem write failed (read-only environment):', fsError.message);
+      // Return success with note so client localStorage can persist without failing UI
+      return NextResponse.json({ success: true, persistedToFile: false, note: fsError.message });
+    }
+
+    return NextResponse.json({ success: true, persistedToFile: true });
   } catch (error: any) {
     console.error('Error writing templates:', error);
     return NextResponse.json({ error: error.message || 'Failed to save templates' }, { status: 500 });
   }
 }
+

@@ -3,7 +3,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { StrengthExercise, EmsTraining, StrengthSet } from '@/types';
-import { Plus, Trash2, Dumbbell, Zap, History, RotateCcw, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Dumbbell, Zap, History, RotateCcw, ChevronDown, Edit3, RefreshCw } from 'lucide-react';
+import defaultTemplatesData from '@/data/workout-templates.json';
+
+const TEMPLATES_STORAGE_KEY = 'shugyo_workout_templates';
 
 interface WorkoutLoggerProps {
   strength: StrengthExercise[];
@@ -33,49 +36,74 @@ export default function WorkoutLogger({
   isCollapsed = false,
   onToggleCollapse,
 }: WorkoutLoggerProps) {
-  const [templates, setTemplates] = useState<Record<string, StrengthExercise[]>>({});
+  const [templates, setTemplates] = useState<Record<string, StrengthExercise[]>>(
+    defaultTemplatesData as unknown as Record<string, StrengthExercise[]>
+  );
   const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [isEditingTemplates, setIsEditingTemplates] = useState(false);
   const [editableTemplates, setEditableTemplates] = useState<Record<string, StrengthExercise[]>>({});
   const [selectedTemplateName, setSelectedTemplateName] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load templates from API
+  // Load templates on initial mount (localStorage with API / bundled fallback)
   useEffect(() => {
-    async function fetchTemplates() {
+    async function loadTemplates() {
+      // 1. Try localStorage first for instant customized data
+      try {
+        const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+            setTemplates(parsed);
+            setLoadingTemplates(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to read templates from localStorage:', err);
+      }
+
+      // 2. Fetch from API
       try {
         const res = await fetch('/api/templates');
         if (res.ok) {
           const data = await res.json();
-          setTemplates(data);
+          if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+            setTemplates(data);
+            try {
+              localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {}
+          }
         }
       } catch (err) {
-        console.error('Failed to load templates:', err);
+        console.error('Failed to load templates from API:', err);
       } finally {
         setLoadingTemplates(false);
       }
     }
-    fetchTemplates();
+    loadTemplates();
   }, []);
 
-  // Sync editable templates when modal opens
-  useEffect(() => {
-    if (isEditingTemplates) {
-      const clone = JSON.parse(JSON.stringify(templates));
-      setEditableTemplates(clone);
-      const keys = Object.keys(clone);
-      if (keys.length > 0 && !keys.includes(selectedTemplateName)) {
+  // Open Manage Templates modal with a clean clone of active templates
+  const handleOpenManageTemplates = () => {
+    const currentSource = templates && Object.keys(templates).length > 0 ? templates : defaultTemplatesData;
+    const clone: Record<string, StrengthExercise[]> = JSON.parse(JSON.stringify(currentSource));
+    setEditableTemplates(clone);
+    const keys = Object.keys(clone);
+    if (keys.length > 0) {
+      if (!selectedTemplateName || !keys.includes(selectedTemplateName)) {
         setSelectedTemplateName(keys[0]);
-      } else if (keys.length > 0) {
-        setSelectedTemplateName(selectedTemplateName);
-      } else {
-        setSelectedTemplateName('');
       }
+    } else {
+      setSelectedTemplateName('');
     }
-  }, [isEditingTemplates, templates]);
+    setIsEditingTemplates(true);
+  };
 
   const handleCreateTemplate = () => {
-    const newName = prompt('Enter a name for the new template (e.g. Day 6):');
+    const rawName = prompt('Enter a name for the new template (e.g. Day 6 or Upper Body):');
+    if (!rawName) return;
+    const newName = rawName.trim();
     if (!newName) return;
     if (editableTemplates[newName]) {
       alert('A template with that name already exists!');
@@ -90,6 +118,30 @@ export default function WorkoutLogger({
     setSelectedTemplateName(newName);
   };
 
+  const handleRenameTemplate = () => {
+    if (!selectedTemplateName) return;
+    const rawName = prompt(`Enter new name for "${selectedTemplateName}":`, selectedTemplateName);
+    if (!rawName) return;
+    const newName = rawName.trim();
+    if (!newName || newName === selectedTemplateName) return;
+    if (editableTemplates[newName]) {
+      alert('A template with that name already exists!');
+      return;
+    }
+    setEditableTemplates(prev => {
+      const next: Record<string, StrengthExercise[]> = {};
+      for (const [key, value] of Object.entries(prev)) {
+        if (key === selectedTemplateName) {
+          next[newName] = value;
+        } else {
+          next[key] = value;
+        }
+      }
+      return next;
+    });
+    setSelectedTemplateName(newName);
+  };
+
   const handleDeleteTemplate = () => {
     if (!selectedTemplateName) return;
     if (!confirm(`Are you sure you want to delete "${selectedTemplateName}"?`)) return;
@@ -97,14 +149,33 @@ export default function WorkoutLogger({
     setEditableTemplates(prev => {
       const next = { ...prev };
       delete next[selectedTemplateName];
+      const remainingKeys = Object.keys(next);
+      setSelectedTemplateName(remainingKeys.length > 0 ? remainingKeys[0] : '');
       return next;
     });
+  };
 
-    const remainingKeys = Object.keys(editableTemplates).filter(k => k !== selectedTemplateName);
-    if (remainingKeys.length > 0) {
-      setSelectedTemplateName(remainingKeys[0]);
-    } else {
-      setSelectedTemplateName('');
+  const handleResetToDefaults = async () => {
+    if (!confirm('Are you sure you want to reset all templates back to default presets? Any custom template edits will be overwritten.')) return;
+    try {
+      const res = await fetch('/api/templates?default=true');
+      let data = defaultTemplatesData;
+      if (res.ok) {
+        const fetched = await res.json();
+        if (fetched && Object.keys(fetched).length > 0) {
+          data = fetched;
+        }
+      }
+      const clone = JSON.parse(JSON.stringify(data));
+      setEditableTemplates(clone);
+      const keys = Object.keys(clone);
+      setSelectedTemplateName(keys.length > 0 ? keys[0] : '');
+    } catch (e) {
+      console.error('Failed to reset templates:', e);
+      const clone = JSON.parse(JSON.stringify(defaultTemplatesData));
+      setEditableTemplates(clone);
+      const keys = Object.keys(clone);
+      setSelectedTemplateName(keys.length > 0 ? keys[0] : '');
     }
   };
 
@@ -138,6 +209,7 @@ export default function WorkoutLogger({
     if (!selectedTemplateName) return;
     setEditableTemplates(prev => {
       const current = [...(prev[selectedTemplateName] || [])];
+      if (!current[exIdx]) return prev;
       current[exIdx] = { ...current[exIdx], name: newName };
       return {
         ...prev,
@@ -146,11 +218,13 @@ export default function WorkoutLogger({
     });
   };
 
-  const handleUpdateSetInTemplate = (exIdx: number, setIdx: number, key: string, value: any) => {
+  const handleUpdateSetInTemplate = (exIdx: number, setIdx: number, key: keyof StrengthSet, value: any) => {
     if (!selectedTemplateName) return;
     setEditableTemplates(prev => {
       const current = [...(prev[selectedTemplateName] || [])];
+      if (!current[exIdx]) return prev;
       const log = [...current[exIdx].log];
+      if (!log[setIdx]) return prev;
       log[setIdx] = { ...log[setIdx], [key]: value };
       current[exIdx] = { ...current[exIdx], log };
       return {
@@ -164,6 +238,7 @@ export default function WorkoutLogger({
     if (!selectedTemplateName) return;
     setEditableTemplates(prev => {
       const current = [...(prev[selectedTemplateName] || [])];
+      if (!current[exIdx]) return prev;
       const log = [...current[exIdx].log];
       const lastSet = log[log.length - 1] || { weight: 0, sets: 3, reps: 10, isAmrap: false };
       log.push({ ...lastSet });
@@ -179,6 +254,7 @@ export default function WorkoutLogger({
     if (!selectedTemplateName) return;
     setEditableTemplates(prev => {
       const current = [...(prev[selectedTemplateName] || [])];
+      if (!current[exIdx]) return prev;
       const log = [...current[exIdx].log];
       log.splice(setIdx, 1);
       current[exIdx] = { ...current[exIdx], log };
@@ -192,17 +268,26 @@ export default function WorkoutLogger({
   const handleSaveTemplates = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch('/api/templates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editableTemplates)
-      });
-      if (res.ok) {
-        setTemplates(editableTemplates);
-        setIsEditingTemplates(false);
-      } else {
-        alert('Failed to save templates');
+      // 1. Immediately persist to localStorage
+      try {
+        localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(editableTemplates));
+      } catch (lsErr) {
+        console.warn('Failed to save templates to localStorage:', lsErr);
       }
+
+      // 2. Persist to API route
+      try {
+        await fetch('/api/templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(editableTemplates)
+        });
+      } catch (apiErr) {
+        console.warn('API save warning (saved in localStorage):', apiErr);
+      }
+
+      setTemplates(editableTemplates);
+      setIsEditingTemplates(false);
     } catch (err) {
       console.error(err);
       alert('Error saving templates');
@@ -238,10 +323,12 @@ export default function WorkoutLogger({
     if (!exerciseName) return null;
     const key = exerciseName.trim().toLowerCase();
     for (const dayName of Object.keys(templates)) {
-      const matchedEx = templates[dayName].find(
-        (e) => e.name.trim().toLowerCase() === key
+      const dayList = templates[dayName];
+      if (!Array.isArray(dayList)) continue;
+      const matchedEx = dayList.find(
+        (e) => e && e.name && e.name.trim().toLowerCase() === key
       );
-      if (matchedEx) return matchedEx.log;
+      if (matchedEx && Array.isArray(matchedEx.log)) return matchedEx.log;
     }
     return null;
   };
@@ -438,7 +525,7 @@ export default function WorkoutLogger({
           ))}
           <button
             type="button"
-            onClick={() => setIsEditingTemplates(true)}
+            onClick={handleOpenManageTemplates}
             className="text-[10px] bg-tatami border border-stone/30 hover:border-aizome px-3 py-1.5 text-aizome transition-all duration-200 uppercase font-semibold tracking-wider font-mono shadow-sm ml-auto"
           >
             Manage Templates
@@ -673,7 +760,10 @@ export default function WorkoutLogger({
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-sumi/20"></div>
 
             <div className="flex justify-between items-center border-b border-shibu pb-3 mb-4">
-              <h3 className="text-lg font-serif font-light text-sumi">Manage Templates</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-serif font-light text-sumi">Manage Templates</h3>
+                <span className="text-[10px] font-mono text-stone">({Object.keys(editableTemplates).length} templates)</span>
+              </div>
               <button 
                 onClick={() => setIsEditingTemplates(false)} 
                 className="text-stone hover:text-sumi text-xs font-mono"
@@ -682,8 +772,8 @@ export default function WorkoutLogger({
               </button>
             </div>
 
-            {/* Select template */}
-            <div className="flex flex-col sm:flex-row gap-4 sm:items-end mb-6">
+            {/* Select template and template actions */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-end mb-6 pb-4 border-b border-shibu/30">
               <div className="flex-1">
                 <label className="block text-[10px] uppercase font-mono tracking-wider text-stone mb-1">Select Template</label>
                 <select 
@@ -697,32 +787,54 @@ export default function WorkoutLogger({
                   ))}
                 </select>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button 
                   type="button" 
                   onClick={handleCreateTemplate}
                   className="text-[10px] font-mono uppercase tracking-wider border border-aizome/30 px-3 py-2 text-aizome hover:bg-aizome hover:text-washi transition-all duration-200"
                 >
-                  Create New
+                  + Create
                 </button>
                 {selectedTemplateName && (
-                  <button 
-                    type="button" 
-                    onClick={handleDeleteTemplate}
-                    className="text-[10px] font-mono uppercase tracking-wider border border-red-300 px-3 py-2 text-red-600 hover:bg-red-50 transition-all duration-200"
-                  >
-                    Delete
-                  </button>
+                  <>
+                    <button 
+                      type="button" 
+                      onClick={handleRenameTemplate}
+                      className="text-[10px] font-mono uppercase tracking-wider border border-shibu px-3 py-2 text-stone hover:text-sumi hover:bg-tatami/40 transition-all duration-200"
+                    >
+                      Rename
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={handleDeleteTemplate}
+                      className="text-[10px] font-mono uppercase tracking-wider border border-red-300 px-3 py-2 text-red-600 hover:bg-red-50 transition-all duration-200"
+                    >
+                      Delete
+                    </button>
+                  </>
                 )}
+                <button 
+                  type="button" 
+                  onClick={handleResetToDefaults}
+                  title="Reset all templates back to default initial configuration"
+                  className="text-[10px] font-mono uppercase tracking-wider border border-shibu/60 px-2.5 py-2 text-stone hover:text-amber-700 transition-all duration-200"
+                >
+                  Reset Defaults
+                </button>
               </div>
             </div>
 
             {/* Edit exercise lists for selected template */}
             {selectedTemplateName && editableTemplates[selectedTemplateName] ? (
               <div className="space-y-4 mb-6">
-                <h4 className="text-xs uppercase font-mono tracking-wider text-stone border-b border-shibu/30 pb-1">
-                  Exercises for {selectedTemplateName}
-                </h4>
+                <div className="flex justify-between items-center border-b border-shibu/30 pb-1">
+                  <h4 className="text-xs uppercase font-mono tracking-wider text-stone">
+                    Exercises for <span className="font-bold text-sumi">{selectedTemplateName}</span>
+                  </h4>
+                  <span className="text-[10px] font-mono text-stone">
+                    {editableTemplates[selectedTemplateName].length} exercise{editableTemplates[selectedTemplateName].length === 1 ? '' : 's'}
+                  </span>
+                </div>
 
                 {editableTemplates[selectedTemplateName].map((ex, exIdx) => (
                   <div key={exIdx} className="border border-shibu/40 p-4 bg-tatami/20 relative rounded-sm">
@@ -731,7 +843,7 @@ export default function WorkoutLogger({
                       onClick={() => handleRemoveExerciseFromTemplate(exIdx)}
                       className="absolute top-2 right-2 text-[10px] font-mono text-stone hover:text-red-500"
                     >
-                      [Remove]
+                      [Remove Exercise]
                     </button>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
@@ -750,7 +862,7 @@ export default function WorkoutLogger({
                     {/* Sets config */}
                     <div className="space-y-2">
                       <div className="grid grid-cols-4 gap-2 text-[9px] uppercase tracking-wider text-stone font-mono">
-                        <div>Weight</div>
+                        <div>Weight (lbs)</div>
                         <div>Sets</div>
                         <div>Reps</div>
                         <div className="text-center">AMRAP</div>
@@ -759,29 +871,38 @@ export default function WorkoutLogger({
                         <div key={setIdx} className="grid grid-cols-4 gap-2 items-center">
                           <input 
                             type="number" 
-                            value={set.weight || ''} 
-                            onChange={(e) => handleUpdateSetInTemplate(exIdx, setIdx, 'weight', parseFloat(e.target.value) || 0)}
+                            value={set.weight !== undefined && set.weight !== null ? set.weight : ''} 
+                            onChange={(e) => {
+                              const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                              handleUpdateSetInTemplate(exIdx, setIdx, 'weight', isNaN(val) ? 0 : val);
+                            }}
                             placeholder="0"
                             className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome text-sumi font-mono"
                           />
                           <input 
                             type="number" 
-                            value={set.sets || ''} 
-                            onChange={(e) => handleUpdateSetInTemplate(exIdx, setIdx, 'sets', parseInt(e.target.value) || 0)}
+                            value={set.sets !== undefined && set.sets !== null ? set.sets : ''} 
+                            onChange={(e) => {
+                              const val = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                              handleUpdateSetInTemplate(exIdx, setIdx, 'sets', isNaN(val) ? 0 : val);
+                            }}
                             placeholder="0"
                             className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome text-sumi font-mono"
                           />
                           <input 
                             type="number" 
-                            value={set.reps || ''} 
-                            onChange={(e) => handleUpdateSetInTemplate(exIdx, setIdx, 'reps', parseInt(e.target.value) || 0)}
+                            value={set.reps !== undefined && set.reps !== null ? set.reps : ''} 
+                            onChange={(e) => {
+                              const val = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                              handleUpdateSetInTemplate(exIdx, setIdx, 'reps', isNaN(val) ? 0 : val);
+                            }}
                             placeholder="0"
                             className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome text-sumi font-mono"
                           />
                           <div className="flex justify-center items-center gap-2">
                             <input 
                               type="checkbox" 
-                              checked={set.isAmrap} 
+                              checked={!!set.isAmrap} 
                               onChange={(e) => handleUpdateSetInTemplate(exIdx, setIdx, 'isAmrap', e.target.checked)}
                               className="accent-aizome"
                             />
@@ -789,7 +910,8 @@ export default function WorkoutLogger({
                               <button 
                                 type="button" 
                                 onClick={() => handleRemoveSetFromTemplate(exIdx, setIdx)}
-                                className="text-stone hover:text-red-500 font-mono text-xs"
+                                className="text-stone hover:text-red-500 font-mono text-xs px-1"
+                                title="Remove Set"
                               >
                                 ×
                               </button>
@@ -801,7 +923,7 @@ export default function WorkoutLogger({
                     <button 
                       type="button" 
                       onClick={() => handleAddSetToTemplate(exIdx)}
-                      className="mt-2 text-[9px] uppercase tracking-widest text-aizome hover:underline"
+                      className="mt-2.5 text-[9px] uppercase tracking-widest text-aizome hover:underline font-mono"
                     >
                       + Add Set Config
                     </button>
@@ -811,29 +933,31 @@ export default function WorkoutLogger({
                 <button 
                   type="button" 
                   onClick={handleAddExerciseToTemplate}
-                  className="w-full border border-dashed border-shibu/65 py-2 text-center text-xs text-stone hover:text-aizome hover:border-aizome transition-colors"
+                  className="w-full border border-dashed border-shibu/65 py-2.5 text-center text-xs text-stone hover:text-aizome hover:border-aizome transition-colors font-mono uppercase tracking-wider"
                 >
                   + Add Exercise to Template
                 </button>
               </div>
             ) : (
               <div className="text-center py-12 text-stone text-xs italic font-serif">
-                Select a template from the list above or create a new one to begin editing.
+                Select a template from the dropdown above or click "+ Create" to begin editing.
               </div>
             )}
 
             {/* Action buttons */}
             <div className="flex justify-end gap-3 border-t border-shibu pt-4 mt-6">
               <button 
+                type="button"
                 onClick={() => setIsEditingTemplates(false)}
-                className="text-xs border border-shibu px-4 py-2 hover:bg-tatami/20 transition-all duration-200"
+                className="text-xs border border-shibu px-4 py-2 hover:bg-tatami/20 transition-all duration-200 text-stone hover:text-sumi"
               >
                 Cancel
               </button>
               <button 
+                type="button"
                 onClick={handleSaveTemplates}
                 disabled={isSaving}
-                className="text-xs bg-aizome text-washi px-4 py-2 hover:bg-aizome/90 transition-all duration-200 disabled:opacity-50"
+                className="text-xs bg-aizome text-washi px-5 py-2 hover:bg-aizome/90 transition-all duration-200 disabled:opacity-50 font-medium shadow-sm"
               >
                 {isSaving ? 'Saving...' : 'Save Templates'}
               </button>
