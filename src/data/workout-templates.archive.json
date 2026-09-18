@@ -1,0 +1,83 @@
+{
+  "Day 1": [
+    { "name": "Anderson Squats (10s hold at lockout)", "log": [{ "weight": 0, "sets": 12, "reps": 2, "isAmrap": false }] },
+    { "name": "Wide Stance Good Mornings", "log": [{ "weight": 0, "sets": 3, "reps": 6, "isAmrap": false }] },
+    { "name": "Hamstring Curls", "log": [{ "weight": 0, "sets": 5, "reps": 10, "isAmrap": false }] },
+    { "name": "Back extensions", "log": [{ "weight": 0, "sets": 4, "reps": 10, "isAmrap": false }] },
+    { "name": "QL extension", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
+    { "name": "Pullups / Chinups", "log": [{ "weight": 0, "sets": 5, "reps": 0, "isAmrap": true }] },
+    { "name": "Hanging Leg Raises (from pullup bar)", "log": [{ "weight": 0, "sets": 5, "reps": 0, "isAmrap": true }] }
+  ],
+  "Day 2": [
+    { "name": "Bench Press", "log": [{ "weight": 0, "sets": 10, "reps": 2, "isAmrap": false }] },
+    { "name": "Bench Press (wide grip, 60% work weight)", "log": [{ "weight": 0, "sets": 2, "reps": 0, "isAmrap": true }] },
+    { "name": "Weighted Ring Dips", "log": [{ "weight": 0, "sets": 4, "reps": 6, "isAmrap": false }] },
+    { "name": "Unweighted Ring Dips", "log": [{ "weight": 0, "sets": 2, "reps": 0, "isAmrap": true }] },
+    { "name": "Bent Press", "log": [{ "weight": 0, "sets": 4, "reps": 10, "isAmrap": false }] },
+    { "name": "Superset of Rope Pushdowns and Overhead Extensions", "log": [{ "weight": 0, "sets": 5, "reps": 12, "isAmrap": false }] },
+    { "name": "Hanging Leg Raises (from pullup bar)", "log": [{ "weight": 0, "sets": 5, "reps": 0, "isAmrap": true }] }
+  ],
+  "Day 3": [
+    { "name": "Pull", "log": [{ "weight": 0, "sets": 10, "reps": 2, "isAmrap": false }] },
+    { "name": "Bent-Over Rows", "log": [{ "weight": 0, "sets": 6, "reps": 6, "isAmrap": false }] },
+    { "name": "Face Pulls", "log": [{ "weight": 0, "sets": 4, "reps": 20, "isAmrap": false }] },
+    { "name": "Hammer Curls", "log": [{ "weight": 0, "sets": 4, "reps": 6, "isAmrap": false }] },
+    { "name": "Barbell Curls", "log": [{ "weight": 0, "sets": 3, "reps": 25, "isAmrap": false }] },
+    { "name": "Hanging Leg Raises", "log": [{ "weight": 0, "sets": 5, "reps": 0, "isAmrap": true }] }
+  ],
+  "Day 4": [
+    { "name": "Lizard Crawl", "log": [{ "weight": 0, "sets": 3, "reps": 20, "isAmrap": false }] },
+    { "name": "Low Bear Crawl", "log": [{ "weight": 0, "sets": 3, "reps": 20, "isAmrap": false }] },
+    { "name": "Duck Walk", "log": [{ "weight": 0, "sets": 3, "reps": 20, "isAmrap": false }] },
+    { "name": "Crab Walk", "log": [{ "weight": 0, "sets": 3, "reps": 20, "isAmrap": false }] },
+    { "name": "Low Bridge", "log": [{ "weight": 0, "sets": 3, "reps": 30, "isAmrap": false }] },
+    { "name": "High Bridge", "log": [{ "weight": 0, "sets": 1, "reps": 30, "isAmrap": false }] }
+  ],
+  "Day 5": [
+    { "name": "Front Squat", "log": [{ "weight": 0, "sets": 6, "reps": 3, "isAmrap": false }] },
+    { "name": "Front Squat (AMRAP)", "log": [{ "weight": 0, "sets": 1, "reps": 0, "isAmrap": true }] },
+    { "name": "Nordic Curl", "log": [{ "weight": 0, "sets": 6, "reps": 3, "isAmrap": false }] },
+    { "name": "Reverse Hyper", "log": [{ "weight": 0, "sets": 3, "reps": 8, "isAmrap": false }] },
+    { "name": "Shrugs", "log": [{ "weight": 0, "sets": 5, "reps": 5, "isAmrap": false }] },
+    { "name": "Reverse Curl", "log": [{ "weight": 0, "sets": 5, "reps": 10, "isAmrap": false }] },
+    { "name": "Hanging Leg Raises", "log": [{ "weight": 0, "sets": 5, "reps": 0, "isAmrap": true }] }
+  ],
+  "Day 6": [
+    { "name": "Strict Military Press", "log": [{ "weight": 0, "sets": 8, "reps": 3, "isAmrap": false }] },
+    { "name": "Klokov Press", "log": [{ "weight": 0, "sets": 5, "reps": 10, "isAmrap": false }] },
+    { "name": "Incline Bench Press", "log": [{ "weight": 0, "sets": 5, "reps": 5, "isAmrap": false }] },
+    { "name": "Close Grip Bench Press", "log": [{ "weight": 0, "sets": 4, "reps": 6, "isAmrap": false }] },
+    {
+      "name": "Skullcrushers",
+      "log": [
+        { "weight": 0, "sets": 1, "reps": 10, "isAmrap": false },
+        { "weight": 0, "sets": 1, "reps": 8, "isAmrap": false },
+        { "weight": 0, "sets": 1, "reps": 6, "isAmrap": false },
+        { "weight": 0, "sets": 1, "reps": 4, "isAmrap": false },
+        { "weight": 0, "sets": 1, "reps": 2, "isAmrap": false },
+        { "weight": 0, "sets": 1, "reps": 2, "isAmrap": false },
+        { "weight": 0, "sets": 1, "reps": 0, "isAmrap": true }
+      ]
+    },
+    { "name": "Hanging Leg Raises (from pullup bar)", "log": [{ "weight": 0, "sets": 5, "reps": 0, "isAmrap": true }] }
+  ],
+  "Bent Arm Session": [
+    { "name": "A1: One Arm Rope Assisted Chin Up", "log": [{ "weight": 0, "sets": 6, "reps": 4, "isAmrap": false }] },
+    { "name": "A2: Chest to wall HSPU (Rest 100s)", "log": [{ "weight": 0, "sets": 6, "reps": 4, "isAmrap": false }] },
+    { "name": "B1: Muscle Up (20 min accumulation)", "log": [{ "weight": 0, "sets": 1, "reps": 1, "isAmrap": true }] },
+    { "name": "C1: Barbell Cuban Rotation", "log": [{ "weight": 0, "sets": 5, "reps": 5, "isAmrap": false }] }
+  ],
+  "Straight Arm Session": [
+    { "name": "A1: Tuck Planche Variation (20 min hold accumulation)", "log": [{ "weight": 0, "sets": 1, "reps": 15, "isAmrap": false }] },
+    { "name": "A2: Front Lever Variation (20 min hold accumulation)", "log": [{ "weight": 0, "sets": 1, "reps": 15, "isAmrap": false }] },
+    { "name": "B1: Skin the Cat", "log": [{ "weight": 0, "sets": 5, "reps": 6, "isAmrap": false }] },
+    { "name": "C1: YTWL Raises", "log": [{ "weight": 0, "sets": 5, "reps": 5, "isAmrap": false }] }
+  ],
+  "Legs Session": [
+    { "name": "A1: Foam Roll (IT, TFL, Vastus Lateralis)", "log": [{ "weight": 0, "sets": 1, "reps": 5, "isAmrap": false }] },
+    { "name": "B1: Bulgarian Split Squat", "log": [{ "weight": 0, "sets": 5, "reps": 5, "isAmrap": false }] },
+    { "name": "B2: Harop Curl (Rest 100s)", "log": [{ "weight": 0, "sets": 5, "reps": 5, "isAmrap": false }] },
+    { "name": "C1: One Leg Jump Rope", "log": [{ "weight": 0, "sets": 3, "reps": 75, "isAmrap": false }] },
+    { "name": "C2: Single Leg Balance (Eyes Closed)", "log": [{ "weight": 0, "sets": 3, "reps": 60, "isAmrap": false }] }
+  ]
+}

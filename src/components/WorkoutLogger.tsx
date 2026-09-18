@@ -6,7 +6,9 @@ import { StrengthExercise, EmsTraining, StrengthSet } from '@/types';
 import { Plus, Trash2, Dumbbell, Zap, History, RotateCcw, ChevronDown, Edit3, RefreshCw } from 'lucide-react';
 import defaultTemplatesData from '@/data/workout-templates.json';
 
-const TEMPLATES_STORAGE_KEY = 'shugyo_workout_templates';
+const TEMPLATES_STORAGE_KEY = 'shugyo_workout_templates_v2';
+const LEGACY_STORAGE_KEY = 'shugyo_workout_templates';
+const ARCHIVE_STORAGE_KEY = 'shugyo_workout_templates_archive';
 
 interface WorkoutLoggerProps {
   strength: StrengthExercise[];
@@ -48,7 +50,18 @@ export default function WorkoutLogger({
   // Load templates on initial mount (localStorage with API / bundled fallback)
   useEffect(() => {
     async function loadTemplates() {
-      // 1. Try localStorage first for instant customized data
+      // 1. Check for legacy templates in localStorage and archive them
+      try {
+        const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+        if (legacy) {
+          localStorage.setItem(ARCHIVE_STORAGE_KEY, legacy);
+          localStorage.removeItem(LEGACY_STORAGE_KEY);
+        }
+      } catch (e) {
+        console.warn('Failed to archive legacy templates from localStorage:', e);
+      }
+
+      // 2. Try localStorage v2 for active templates
       try {
         const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY);
         if (saved) {
