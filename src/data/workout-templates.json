@@ -4,21 +4,37 @@
     { "name": "Weighted Rings Chinup", "log": [{ "weight": 0, "sets": 5, "reps": 3, "isAmrap": false }] },
     { "name": "Weighted Rings pushup", "log": [{ "weight": 0, "sets": 3, "reps": 8, "isAmrap": false }] },
     { "name": "Overhead Unilateral Triceps extensions (+bands)", "log": [{ "weight": 0, "sets": 3, "reps": 8, "isAmrap": false }] },
-    { "name": "Lateral raise", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] }
+    { "name": "Lateral raise", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
+    { "name": "Scapular Push-up", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
+    { "name": "Durante Core 1: Hollow Rock", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
+    { "name": "Durante Core 1: V-Up", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
+    { "name": "Durante Core 1: Tuck-Up", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
+    { "name": "Durante Core 1: Hollow Hold (10s)", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] }
   ],
   "Lower Session 1": [
     { "name": "Front Squat", "log": [{ "weight": 0, "sets": 5, "reps": 3, "isAmrap": false }] },
-    { "name": "RDL", "log": [{ "weight": 0, "sets": 3, "reps": 8, "isAmrap": false }] }
+    { "name": "RDL", "log": [{ "weight": 0, "sets": 3, "reps": 8, "isAmrap": false }] },
+    { "name": "Back Bridge", "log": [{ "weight": 0, "sets": 3, "reps": 20, "isAmrap": false }] },
+    { "name": "Hanging Leg Raise", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
+    { "name": "Jefferson Curl", "log": [{ "weight": 0, "sets": 3, "reps": 5, "isAmrap": false }] },
+    { "name": "Durante Core 2: Arch Rock", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
+    { "name": "Durante Core 2: Arch Up", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
+    { "name": "Durante Core 2: Arch Hold (10s)", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] }
   ],
   "Upper Session 2": [
     { "name": "OHP (dumbbells)", "log": [{ "weight": 0, "sets": 12, "reps": 3, "isAmrap": false }] },
     { "name": "Weighted Rings Chinup", "log": [{ "weight": 0, "sets": 12, "reps": 3, "isAmrap": false }] },
     { "name": "High/Low Rings Row (Option 1)", "log": [{ "weight": 0, "sets": 3, "reps": 14, "isAmrap": false }] },
     { "name": "Unilateral ring row (lat focus) (Option 2)", "log": [{ "weight": 0, "sets": 3, "reps": 8, "isAmrap": false }] },
-    { "name": "Unilateral Dumbell Row (Option 3)", "log": [{ "weight": 0, "sets": 3, "reps": 12, "isAmrap": false }] }
+    { "name": "Unilateral Dumbell Row (Option 3)", "log": [{ "weight": 0, "sets": 3, "reps": 12, "isAmrap": false }] },
+    { "name": "Skin the Cat", "log": [{ "weight": 0, "sets": 3, "reps": 5, "isAmrap": false }] },
+    { "name": "L-Sit", "log": [{ "weight": 0, "sets": 4, "reps": 15, "isAmrap": false }] }
   ],
   "Lower Session 2": [
     { "name": "Front Squat", "log": [{ "weight": 0, "sets": 12, "reps": 3, "isAmrap": false }] },
-    { "name": "ROM Split Squat", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] }
+    { "name": "ROM Split Squat", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
+    { "name": "Back Bridge", "log": [{ "weight": 0, "sets": 3, "reps": 20, "isAmrap": false }] },
+    { "name": "Nordic Leg Curl", "log": [{ "weight": 0, "sets": 3, "reps": 5, "isAmrap": false }] },
+    { "name": "Hanging Leg Raise", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] }
   ]
 }

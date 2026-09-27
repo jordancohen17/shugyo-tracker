@@ -1,13 +1,14 @@
 // src/components/WorkoutLogger.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StrengthExercise, EmsTraining, StrengthSet } from '@/types';
-import { Plus, Trash2, Dumbbell, Zap, History, RotateCcw, ChevronDown, Edit3, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Dumbbell, Zap, History, RotateCcw, ChevronDown, Edit3, RefreshCw, Timer } from 'lucide-react';
 import defaultTemplatesData from '@/data/workout-templates.json';
+import RestTimer, { RestTimerHandle } from '@/components/RestTimer';
 
-const TEMPLATES_STORAGE_KEY = 'shugyo_workout_templates_v2';
-const LEGACY_STORAGE_KEY = 'shugyo_workout_templates';
+const TEMPLATES_STORAGE_KEY = 'shugyo_workout_templates_v3';
+const LEGACY_STORAGE_KEY = 'shugyo_workout_templates_v2';
 const ARCHIVE_STORAGE_KEY = 'shugyo_workout_templates_archive';
 
 interface WorkoutLoggerProps {
@@ -46,6 +47,7 @@ export default function WorkoutLogger({
   const [editableTemplates, setEditableTemplates] = useState<Record<string, StrengthExercise[]>>({});
   const [selectedTemplateName, setSelectedTemplateName] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
+  const timerRef = useRef<RestTimerHandle | null>(null);
 
   // Load templates on initial mount (localStorage with API / bundled fallback)
   useEffect(() => {
@@ -510,6 +512,14 @@ export default function WorkoutLogger({
 
       {/* Strength & Calisthenics Section */}
       <div>
+        {/* Rest & Set Timer Component */}
+        <RestTimer
+          onTimerRef={(handle) => {
+            timerRef.current = handle;
+          }}
+          className="mb-6"
+        />
+
         <div className="flex justify-between items-center mb-4">
           <span className="text-xs uppercase tracking-wider text-stone font-mono">Strength Exercises</span>
           {strength.length === 0 && (
@@ -569,13 +579,24 @@ export default function WorkoutLogger({
           <div className="space-y-6">
             {strength.map((ex, exIndex) => (
               <div key={exIndex} className="p-4 border border-shibu rounded-sm relative">
-                <button
-                  type="button"
-                  onClick={() => removeExercise(exIndex)}
-                  className="absolute top-4 right-4 text-stone hover:text-red-600 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => timerRef.current?.startRest(undefined, ex.name || 'Rest')}
+                    className="hidden sm:flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 bg-tatami border border-shibu/60 text-aizome hover:bg-aizome hover:text-washi transition-all rounded-sm"
+                    title="Start rest timer for this movement"
+                  >
+                    <Timer className="w-3 h-3" />
+                    <span>Rest Timer</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeExercise(exIndex)}
+                    className="text-stone hover:text-red-600 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
 
                 <div className="mb-4 max-w-sm">
                   <label className="block text-[10px] uppercase tracking-wider text-stone mb-1 font-mono">Movement Name</label>
@@ -604,7 +625,7 @@ export default function WorkoutLogger({
                               </span>
                               <span className="font-mono bg-washi px-1.5 py-0.5 border border-shibu/40 text-[9px] text-sumi">
                                 {historyEntry.log
-                                  .map((s) => `${s.weight}lbs ${s.sets}x${s.reps}${s.isAmrap ? ' AMRAP' : ''}`)
+                                   .map((s) => `${s.weight}lbs ${s.sets}x${s.reps}${s.isAmrap ? ' AMRAP' : ''}`)
                                   .join(', ')}
                               </span>
                               <span className="text-[9px] text-stone font-mono">
@@ -661,28 +682,32 @@ export default function WorkoutLogger({
 
                 {/* Sets List */}
                 <div className="space-y-2">
-                  <div className="grid grid-cols-4 gap-2 text-[10px] uppercase tracking-wider text-stone font-mono">
-                    <div>Weight (lbs/kgs)</div>
-                    <div>Sets</div>
-                    <div>Reps</div>
-                    <div className="text-center">AMRAP</div>
+                  <div className="grid grid-cols-12 gap-2 text-[10px] uppercase tracking-wider text-stone font-mono items-center">
+                    <div className="col-span-3 sm:col-span-3">Weight (lbs)</div>
+                    <div className="col-span-3 sm:col-span-2">Sets</div>
+                    <div className="col-span-3 sm:col-span-2">Reps</div>
+                    <div className="col-span-1 sm:col-span-2 text-center">AMRAP</div>
+                    <div className="col-span-2 sm:col-span-3 text-center sm:text-right">Timer</div>
                   </div>
 
                   {ex.log.map((set, setIndex) => (
-                    <div key={setIndex} className="grid grid-cols-4 gap-2 items-center">
-                      <input
-                        type="number"
-                        value={set.weight || ''}
-                        onChange={(e) => updateSet(exIndex, setIndex, 'weight', parseFloat(e.target.value) || 0)}
-                        placeholder="0"
-                        className="bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome"
-                      />
+                    <div key={setIndex} className="grid grid-cols-12 gap-2 items-center">
+                      <div className="col-span-3 sm:col-span-3">
+                        <input
+                          type="number"
+                          value={set.weight || ''}
+                          onChange={(e) => updateSet(exIndex, setIndex, 'weight', parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          className="w-full bg-washi border border-shibu px-2 py-1 text-xs outline-none focus:border-aizome"
+                        />
+                      </div>
+                      
                       {/* Sets Counter */}
-                      <div className="flex items-center border border-shibu bg-washi rounded-sm max-w-[80px] h-7">
+                      <div className="col-span-3 sm:col-span-2 flex items-center border border-shibu bg-washi rounded-sm h-7">
                         <button
                           type="button"
                           onClick={() => updateSet(exIndex, setIndex, 'sets', Math.max(0, (set.sets ?? 0) - 1))}
-                          className="w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
+                          className="w-6 sm:w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
                         >
                           -
                         </button>
@@ -692,18 +717,18 @@ export default function WorkoutLogger({
                         <button
                           type="button"
                           onClick={() => updateSet(exIndex, setIndex, 'sets', (set.sets ?? 0) + 1)}
-                          className="w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
+                          className="w-6 sm:w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
                         >
                           +
                         </button>
                       </div>
 
                       {/* Reps Counter */}
-                      <div className="flex items-center border border-shibu bg-washi rounded-sm max-w-[80px] h-7">
+                      <div className="col-span-3 sm:col-span-2 flex items-center border border-shibu bg-washi rounded-sm h-7">
                         <button
                           type="button"
                           onClick={() => updateSet(exIndex, setIndex, 'reps', Math.max(0, (set.reps ?? 0) - 1))}
-                          className="w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
+                          className="w-6 sm:w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
                         >
                           -
                         </button>
@@ -713,23 +738,39 @@ export default function WorkoutLogger({
                         <button
                           type="button"
                           onClick={() => updateSet(exIndex, setIndex, 'reps', (set.reps ?? 0) + 1)}
-                          className="w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
+                          className="w-6 sm:w-7 h-full flex items-center justify-center text-xs text-stone hover:text-sumi hover:bg-tatami/40 font-mono select-none"
                         >
                           +
                         </button>
                       </div>
-                      <div className="flex justify-center items-center gap-2">
+
+                      {/* AMRAP Toggle */}
+                      <div className="col-span-1 sm:col-span-2 flex justify-center items-center">
                         <input
                           type="checkbox"
                           checked={set.isAmrap}
                           onChange={(e) => updateSet(exIndex, setIndex, 'isAmrap', e.target.checked)}
                           className="accent-aizome"
                         />
+                      </div>
+
+                      {/* Rest Timer Button & Remove */}
+                      <div className="col-span-2 sm:col-span-3 flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => timerRef.current?.startRest(undefined, `${ex.name || 'Exercise'} (Set ${setIndex + 1})`)}
+                          className="flex items-center justify-center gap-1 text-[10px] font-mono px-2 py-1 bg-tatami hover:bg-aizome hover:text-washi border border-shibu hover:border-aizome rounded-sm transition-all"
+                          title="Start rest timer for this set"
+                        >
+                          <Timer className="w-3 h-3 text-aizome group-hover:text-washi" />
+                          <span className="hidden sm:inline">Rest</span>
+                        </button>
                         {ex.log.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeSet(exIndex, setIndex)}
-                            className="text-stone hover:text-red-500 transition-colors ml-2"
+                            className="text-stone hover:text-red-500 transition-colors px-1"
+                            title="Remove set config"
                           >
                             ×
                           </button>
@@ -739,13 +780,23 @@ export default function WorkoutLogger({
                   ))}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => addSet(exIndex)}
-                  className="mt-3 text-[10px] uppercase tracking-widest text-aizome hover:underline"
-                >
-                  + Add Set config
-                </button>
+                <div className="flex items-center justify-between mt-3">
+                  <button
+                    type="button"
+                    onClick={() => addSet(exIndex)}
+                    className="text-[10px] uppercase tracking-widest text-aizome hover:underline font-mono"
+                  >
+                    + Add Set config
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => timerRef.current?.startStopwatch(ex.name || 'Hold Set')}
+                    className="sm:hidden flex items-center gap-1 text-[10px] font-mono text-stone hover:text-sumi underline"
+                  >
+                    <Timer className="w-2.5 h-2.5" /> Hold Timer
+                  </button>
+                </div>
               </div>
             ))}
             <div className="flex justify-start pt-2">
