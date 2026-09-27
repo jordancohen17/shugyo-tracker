@@ -9,7 +9,7 @@
     { "name": "Durante Core 1", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] }
   ],
   "Lower Session 1": [
-    { "name": "Front Squat", "log": [{ "weight": 0, "sets": 5, "reps": 3, "isAmrap": false }] },
+    { "name": "Zercher Squat", "log": [{ "weight": 0, "sets": 5, "reps": 3, "isAmrap": false }] },
     { "name": "Romanian Deadlift", "log": [{ "weight": 0, "sets": 3, "reps": 8, "isAmrap": false }] },
     { "name": "Back Bridge", "log": [{ "weight": 0, "sets": 3, "reps": 20, "isAmrap": false }] },
     { "name": "Hanging Leg Raise", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
@@ -26,7 +26,7 @@
     { "name": "L-Sit", "log": [{ "weight": 0, "sets": 4, "reps": 15, "isAmrap": false }] }
   ],
   "Lower Session 2": [
-    { "name": "Front Squat", "log": [{ "weight": 0, "sets": 12, "reps": 3, "isAmrap": false }] },
+    { "name": "Zercher Squat", "log": [{ "weight": 0, "sets": 12, "reps": 3, "isAmrap": false }] },
     { "name": "ROM Split Squat", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
     { "name": "Back Bridge", "log": [{ "weight": 0, "sets": 3, "reps": 20, "isAmrap": false }] },
     { "name": "Nordic Leg Curl", "log": [{ "weight": 0, "sets": 3, "reps": 5, "isAmrap": false }] },

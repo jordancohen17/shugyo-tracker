@@ -7,8 +7,8 @@ import { Plus, Trash2, Dumbbell, Zap, History, RotateCcw, ChevronDown, Edit3, Re
 import defaultTemplatesData from '@/data/workout-templates.json';
 import RestTimer, { RestTimerHandle } from '@/components/RestTimer';
 
-const TEMPLATES_STORAGE_KEY = 'shugyo_workout_templates_v4';
-const LEGACY_STORAGE_KEY = 'shugyo_workout_templates_v3';
+const TEMPLATES_STORAGE_KEY = 'shugyo_workout_templates_v5';
+const LEGACY_STORAGE_KEY = 'shugyo_workout_templates_v4';
 const ARCHIVE_STORAGE_KEY = 'shugyo_workout_templates_archive';
 
 interface WorkoutLoggerProps {
@@ -23,7 +23,7 @@ interface WorkoutLoggerProps {
 
 const COMMON_MOVEMENTS = [
   'Barbell Overhead Press',
-  'Front Squat',
+  'Zercher Squat',
   'Romanian Deadlift',
   'Weighted Ring Chin-up',
   'Weighted Ring Push-up',
