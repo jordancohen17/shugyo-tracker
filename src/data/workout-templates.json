@@ -11,6 +11,7 @@
   "Lower Session 1": [
     { "name": "Zercher Squat", "log": [{ "weight": 0, "sets": 5, "reps": 3, "isAmrap": false }] },
     { "name": "Romanian Deadlift", "log": [{ "weight": 0, "sets": 3, "reps": 8, "isAmrap": false }] },
+    { "name": "Reverse Nordic", "log": [{ "weight": 0, "sets": 3, "reps": 8, "isAmrap": false }] },
     { "name": "Back Bridge", "log": [{ "weight": 0, "sets": 3, "reps": 20, "isAmrap": false }] },
     { "name": "Hanging Leg Raise", "log": [{ "weight": 0, "sets": 3, "reps": 10, "isAmrap": false }] },
     { "name": "Jefferson Curl", "log": [{ "weight": 0, "sets": 3, "reps": 5, "isAmrap": false }] },
