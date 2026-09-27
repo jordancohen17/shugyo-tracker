@@ -133,7 +133,7 @@ export default function DailyHabitsLogger({
       </div>
 
       {/* Collapsible Body */}
-      <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[1200px] opacity-100'}`}>
+      <div className={`transition-opacity duration-300 ease-in-out ${isCollapsed ? 'hidden' : 'block opacity-100'}`}>
         
         {/* Stopwatch Timers Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">

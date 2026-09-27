@@ -7,8 +7,8 @@ import { Plus, Trash2, Dumbbell, Zap, History, RotateCcw, ChevronDown, Edit3, Re
 import defaultTemplatesData from '@/data/workout-templates.json';
 import RestTimer, { RestTimerHandle } from '@/components/RestTimer';
 
-const TEMPLATES_STORAGE_KEY = 'shugyo_workout_templates_v3';
-const LEGACY_STORAGE_KEY = 'shugyo_workout_templates_v2';
+const TEMPLATES_STORAGE_KEY = 'shugyo_workout_templates_v4';
+const LEGACY_STORAGE_KEY = 'shugyo_workout_templates_v3';
 const ARCHIVE_STORAGE_KEY = 'shugyo_workout_templates_archive';
 
 interface WorkoutLoggerProps {
@@ -22,12 +22,16 @@ interface WorkoutLoggerProps {
 }
 
 const COMMON_MOVEMENTS = [
-  'Zercher Squat',
-  'Push Press',
-  'Weighted Pull-up',
-  'Weighted Dip',
-  'Barbell Deadlift',
-  'L-Sit Hold'
+  'Barbell Overhead Press',
+  'Front Squat',
+  'Romanian Deadlift',
+  'Weighted Ring Chin-up',
+  'Weighted Ring Push-up',
+  'L-Sit',
+  'Back Bridge',
+  'Hanging Leg Raise',
+  'Durante Core 1',
+  'Durante Core 2'
 ];
 
 export default function WorkoutLogger({
@@ -451,7 +455,7 @@ export default function WorkoutLogger({
       </div>
 
       {/* Collapsible Body */}
-      <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[3000px] opacity-100'}`}>
+      <div className={`transition-opacity duration-300 ease-in-out ${isCollapsed ? 'hidden' : 'block opacity-100'}`}>
 
       {/* Katalyst EMS Suit Training Block */}
       <div className="mb-8 p-4 bg-tatami/40 border border-shibu rounded-sm">
@@ -683,11 +687,11 @@ export default function WorkoutLogger({
                 {/* Sets List */}
                 <div className="space-y-2">
                   <div className="grid grid-cols-12 gap-2 text-[10px] uppercase tracking-wider text-stone font-mono items-center">
-                    <div className="col-span-3 sm:col-span-3">Weight (lbs)</div>
+                    <div className="col-span-3 sm:col-span-3 truncate">Weight</div>
                     <div className="col-span-3 sm:col-span-2">Sets</div>
                     <div className="col-span-3 sm:col-span-2">Reps</div>
-                    <div className="col-span-1 sm:col-span-2 text-center">AMRAP</div>
-                    <div className="col-span-2 sm:col-span-3 text-center sm:text-right">Timer</div>
+                    <div className="col-span-1 sm:col-span-2 text-center text-[9px] sm:text-[10px]">AMRAP</div>
+                    <div className="col-span-2 sm:col-span-3 text-right text-[9px] sm:text-[10px] pr-1">Rest</div>
                   </div>
 
                   {ex.log.map((set, setIndex) => (
@@ -750,7 +754,7 @@ export default function WorkoutLogger({
                           type="checkbox"
                           checked={set.isAmrap}
                           onChange={(e) => updateSet(exIndex, setIndex, 'isAmrap', e.target.checked)}
-                          className="accent-aizome"
+                          className="accent-aizome cursor-pointer"
                         />
                       </div>
 
@@ -759,17 +763,17 @@ export default function WorkoutLogger({
                         <button
                           type="button"
                           onClick={() => timerRef.current?.startRest(undefined, `${ex.name || 'Exercise'} (Set ${setIndex + 1})`)}
-                          className="flex items-center justify-center gap-1 text-[10px] font-mono px-2 py-1 bg-tatami hover:bg-aizome hover:text-washi border border-shibu hover:border-aizome rounded-sm transition-all"
+                          className="flex items-center justify-center p-1 sm:px-2 sm:py-1 bg-tatami hover:bg-aizome hover:text-washi border border-shibu hover:border-aizome rounded-sm transition-all"
                           title="Start rest timer for this set"
                         >
-                          <Timer className="w-3 h-3 text-aizome group-hover:text-washi" />
-                          <span className="hidden sm:inline">Rest</span>
+                          <Timer className="w-3.5 h-3.5 sm:w-3 sm:h-3 text-aizome group-hover:text-washi" />
+                          <span className="hidden sm:inline font-mono text-[10px] ml-1">Rest</span>
                         </button>
                         {ex.log.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeSet(exIndex, setIndex)}
-                            className="text-stone hover:text-red-500 transition-colors px-1"
+                            className="text-stone hover:text-red-500 transition-colors px-1 text-xs"
                             title="Remove set config"
                           >
                             ×

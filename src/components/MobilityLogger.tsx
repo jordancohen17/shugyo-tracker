@@ -71,7 +71,7 @@ export default function MobilityLogger({ mobility, onChange, isCollapsed = false
       </div>
 
       {/* Collapsible Body */}
-      <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[1500px] opacity-100'}`}>
+      <div className={`transition-opacity duration-300 ease-in-out ${isCollapsed ? 'hidden' : 'block opacity-100'}`}>
 
       {/* Duration and Notes Inputs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">

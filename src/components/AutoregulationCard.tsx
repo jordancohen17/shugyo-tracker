@@ -85,7 +85,7 @@ export default function AutoregulationCard({
       </div>
 
       {/* Collapsible Body */}
-      <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[1000px] opacity-100'}`}>
+      <div className={`transition-opacity duration-300 ease-in-out ${isCollapsed ? 'hidden' : 'block opacity-100'}`}>
         {error && (
           <div className="mb-6 p-3 bg-red-50 border-l-2 border-red-500 text-xs text-red-700 flex items-start gap-2">
             <ShieldAlert className="w-4 h-4 mt-0.5 flex-shrink-0" />

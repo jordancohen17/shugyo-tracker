@@ -65,7 +65,7 @@ export default function StressorLogger({ stressors, onChange, isCollapsed = fals
       </div>
 
       {/* Collapsible Body */}
-      <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[1000px] opacity-100'}`}>
+      <div className={`transition-opacity duration-300 ease-in-out ${isCollapsed ? 'hidden' : 'block opacity-100'}`}>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Alcohol Section */}
